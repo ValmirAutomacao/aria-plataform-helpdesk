@@ -14,6 +14,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
+      <head>
+        <style dangerouslySetInnerHTML={{__html: `
+          :root{
+            --bg-0:#07060b;--bg-1:#0c0a13;--bg-2:#14111d;--bg-3:#1c1828;--bg-4:#25203a;
+            --fg-0:#fff;--fg-1:#eae6f5;--fg-2:#9a94b3;--fg-3:#6a6480;--fg-4:#3e3a54;
+            --line-1:rgba(255,255,255,.06);--line-2:rgba(255,255,255,.10);--line-3:rgba(255,255,255,.16);
+            --v-200:#c6b8ff;--v-400:#8a6bff;--v-500:#6e46ff;--v-600:#5a34f0;--v-700:#4a26c9;--v-900:#1e1247;
+            --ok:#2ecf8b;--ok-s:rgba(46,207,139,.14);--warn:#f5b64b;--warn-s:rgba(245,182,75,.14);--bad:#ff5e7a;--bad-s:rgba(255,94,122,.14);--info:#5cc4ff;
+            --ring-v:0 0 0 3px rgba(110,70,255,.25);--shadow-md:0 6px 24px rgba(0,0,0,.35);
+            --grad-violet:linear-gradient(135deg,#6e46ff 0%,#9a6bff 60%,#b983ff 100%);
+            --grad-hero:radial-gradient(1200px 600px at 20% 30%,rgba(110,70,255,.35),transparent 60%),radial-gradient(900px 500px at 85% 80%,rgba(92,196,255,.18),transparent 60%),linear-gradient(180deg,#0a0814 0%,#110c1f 100%);
+            --grad-edge:linear-gradient(180deg,transparent 0%,rgba(110,70,255,.15) 50%,transparent 100%);
+            --font-sans:'Inter',system-ui,sans-serif;--font-display:'Space Grotesk','Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+          }
+        `}} />
+      </head>
       <body className="antialiased">
         {children}
       </body>
