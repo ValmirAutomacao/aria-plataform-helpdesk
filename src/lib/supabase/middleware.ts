@@ -15,10 +15,15 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          // Primeiro define nos cookies do request (para componentes server-side)
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          // Cria nova response com o request atualizado
           supabaseResponse = NextResponse.next({
             request,
           })
+          // Depois define na response (para o browser receber os cookies)
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -27,26 +32,35 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Atualiza e verifica a sessão
+  // IMPORTANTE: não adicionar lógica entre createServerClient e getUser
+  // Isso pode invalidar a sessão de forma silenciosa
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
+  const pathname = request.nextUrl.pathname
+  const isAuthRoute = pathname === '/login' || pathname.startsWith('/login')
+  const isPublicAsset = pathname.startsWith('/_next') || pathname.startsWith('/favicon')
 
-  // Se não estiver logado e tentar acessar uma rota protegida (tudo que não for login)
+  if (isPublicAsset) {
+    return supabaseResponse
+  }
+
+  // Se não estiver logado e tentar acessar rota protegida → redireciona pro login
   if (!user && !isAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Se estiver logado e tentar acessar a tela de login
+  // Se estiver logado e tentar acessar o login → redireciona para o dashboard
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
+  // CRÍTICO: retornar supabaseResponse (não NextResponse.next()) 
+  // para garantir que os cookies de sessão sejam propagados ao browser
   return supabaseResponse
 }
