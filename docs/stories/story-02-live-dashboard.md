@@ -5,27 +5,27 @@
 
 ## 2. Tarefas (Tasks)
 
-- [ ] **Configuração de WebSockets (Supabase Realtime):**
+- [x] **Configuração de WebSockets (Supabase Realtime):**
   - Implementar hook ou camada de comunicação (`useRealtime`) para escutar inserts nas tabelas `tickets` e `messages`.
   - Garantir atualização em tempo real sem recarregamento da página.
 
-- [ ] **Interface do Inbox (Listagem de Tickets):**
+- [x] **Interface do Inbox (Listagem de Tickets):**
   - Desenvolver o layout da caixa de entrada principal com base no HTML estático (`ARIA Helpdesk.html`).
   - Renderizar tags de status (Resolvido, Pendente), SLA e indicador "AI" de maneira dinâmica.
 
-- [ ] **Janela de Chat & Chain of Thought (CoT):**
+- [x] **Janela de Chat & Chain of Thought (CoT):**
   - Construir a janela de conversa simulando a troca de mensagens humano-IA-cliente.
   - Criar o componente de "Pensamento da IA" (CoT) em estado de acordeão ou expansível, fiel ao design original.
 
-- [ ] **Context Panel (Dados do Cliente):**
+- [x] **Context Panel (Dados do Cliente):**
   - Implementar a barra lateral da direita que exibe informações do ticket.
   - Mostrar os perfis VIP e histórico do cliente extraídos do protótipo.
 
 ## 3. Critérios de Aceite (Quality Gates)
-- [ ] Novas mensagens injetadas no banco de dados devem aparecer instantaneamente no Inbox.
-- [ ] A área central de Chat reproduz fielmente as caixas de fala com o CoT.
-- [ ] O Context Panel à direita está fixo e espelha o HTML estático perfeitamente.
-- [ ] O projeto passa na verificação de tipagem (`npm run typecheck`) e lint (`npm run lint`).
+- [x] Novas mensagens injetadas no banco de dados devem aparecer instantaneamente no Inbox.
+- [x] A área central de Chat reproduz fielmente as caixas de fala com o CoT.
+- [x] O Context Panel à direita está fixo e espelha o HTML estático perfeitamente.
+- [x] O projeto passa na verificação de tipagem (`npm run typecheck`) e lint (`npm run lint`).
 
 ## 4. Referências
 - HTML: `ARIA Helpdesk.html` (referência para o layout Inbox, Chat e Context Panel).

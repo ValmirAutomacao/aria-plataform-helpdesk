@@ -50,10 +50,10 @@ export function ChatTimeline({ messages }: ChatTimelineProps) {
             )}
 
             <div 
-              className={`relative px-4 py-3 rounded-2xl text-[13px] leading-relaxed max-w-[540px]
+              className={`relative px-4 py-3 text-[13px] leading-relaxed max-w-[540px]
                 ${isThem 
-                  ? "bg-[var(--bg-2)] border border-[var(--line-1)] text-[var(--fg-1)] rounded-tl-sm" 
-                  : "bg-[var(--bg-3)] border border-[var(--v-900)] text-[var(--fg-0)] rounded-tr-sm"
+                  ? "bg-[var(--bg-2)] border border-[var(--line-1)] text-[var(--fg-1)] rounded-[14px_14px_14px_4px]" 
+                  : "bg-[var(--bg-3)] border border-[var(--v-900)] text-[var(--fg-0)] rounded-[14px_14px_4px_14px]"
                 }
               `}
             >
