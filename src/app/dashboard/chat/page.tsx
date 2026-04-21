@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Rail } from "@/components/layout/rail"
 import { ChatTimeline } from "@/components/chat/chat-timeline"
 import { ContextSidebar } from "@/components/chat/context-sidebar"
 import { InboxList } from "@/components/inbox/inbox-list"
 import { useRealtimeChat } from "@/hooks/use-realtime-chat"
-import { Phone, Users, FileText, MoreHorizontal, Zap, Paperclip, Smile, Mic, Brain, Send, Search, Filter, Bell, Plus } from "lucide-react"
+import { Phone, Users, FileText, MoreHorizontal, Zap, Paperclip, Smile, Mic, Brain, Send, Search, Filter, Bell, Plus, MessageSquare, Ticket } from "lucide-react"
 
 // Componente simples para a Sidebar de navegação do dashboard (CRM menu)
 function NavSidebar() {
@@ -15,7 +15,7 @@ function NavSidebar() {
     <aside className="w-[256px] bg-[var(--bg-1)] border-r border-[var(--line-1)] flex flex-col shrink-0">
       <div className="p-4 pb-0">
         <div className="flex items-center gap-3 p-3 bg-[var(--bg-2)] border border-[var(--line-1)] rounded-xl mb-6">
-          <div className="w-8 h-8 bg-grad-violet rounded-lg flex items-center justify-center text-white font-bold">T</div>
+          <div className="w-8 h-8 bg-[var(--grad-violet)] rounded-lg flex items-center justify-center text-white font-bold">T</div>
           <div className="flex-1 overflow-hidden">
             <div className="text-[13px] font-semibold text-[var(--fg-0)] truncate">TechCorp Brasil</div>
             <div className="text-[11px] text-[var(--fg-3)] truncate font-mono">marina@techcorp.com.br</div>
@@ -42,9 +42,8 @@ function NavSidebar() {
     </aside>
   )
 }
-import { MessageSquare, Ticket } from "lucide-react"
 
-export default function ChatPage() {
+function ChatDashboard() {
   const searchParams = useSearchParams()
   const ticketId = searchParams.get("ticket") || "d4b3b1e3-231a-4c2f-b4b1-9b16854b7c10" // ticket mock for testing
   
@@ -60,12 +59,9 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen w-full bg-[var(--bg-1)] overflow-hidden">
       <Rail active="chat" />
-      
-      {/* Podemos alternar entre NavSidebar ou InboxList conforme a tela */}
       <NavSidebar />
 
       <main className="flex-1 flex flex-col min-w-0 bg-[var(--bg-0)] relative border-r border-[var(--line-1)]">
-        {/* Topbar */}
         <div className="h-[57px] flex items-center justify-between px-5 border-b border-[var(--line-1)] bg-[rgba(7,6,11,0.85)] backdrop-blur-md sticky top-0 z-50">
           <div className="flex items-center gap-2 text-[13px] text-[var(--fg-2)]">
             <span>Inbox</span><span className="text-[var(--line-3)]">/</span>
@@ -91,7 +87,6 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Chat Timeline (Scrollable area) */}
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center text-[var(--fg-3)] text-sm">
             Carregando histórico do ticket...
@@ -100,7 +95,6 @@ export default function ChatPage() {
           <ChatTimeline messages={messages} />
         )}
 
-        {/* Composer */}
         <div className="border-t border-[var(--line-1)] bg-[var(--bg-1)] p-4 flex flex-col gap-3">
           <div className="flex gap-2">
             <button className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[var(--line-1)] bg-[var(--bg-2)] hover:bg-[var(--bg-3)] text-[11px] font-medium text-[var(--fg-1)] transition-colors">
@@ -150,9 +144,20 @@ export default function ChatPage() {
         </div>
       </main>
 
-      {/* Context Sidebar Direita */}
       <ContextSidebar />
     </div>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--bg-1)] text-[var(--fg-3)]">
+        Carregando ARIA Helpdesk...
+      </div>
+    }>
+      <ChatDashboard />
+    </Suspense>
   )
 }
 
