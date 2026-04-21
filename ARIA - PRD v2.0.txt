@@ -1,0 +1,135 @@
+﻿ARIA - Autonomous Response & Intelligence Agent (PRD v2.0)
+1. Visão Geral do Produto
+O ARIA visa transformar a solução atual em uma aplicação SaaS Multi-tenant robusta, substituindo a orquestração via n8n por um front-end profissional (Next.js), back-end assíncrono (FastAPI) e um banco de dados poderoso (Supabase). O foco principal é fornecer automação inteligente via WhatsApp com observabilidade total, transbordo humano cirúrgico e uma gestão de conhecimento dinâmica e auto-evolutiva.
+2. Pilares de Segurança e Multi-tenancy
+Para garantir a segurança no uso de React/Next.js e o isolamento total de dados entre os clientes (tenants), a plataforma implementará as seguintes estratégias estruturais:
+Componente
+	Estratégia de Segurança
+ 
+	Autenticação
+	Utilização do Supabase Auth com JWT. Os tokens não serão armazenados em localStorage (mitigando ataques XSS), mas gerenciados de forma segura em cookies HttpOnly ou instâncias de memória via back-end.
+	Isolamento de Dados
+	Implementação de Row Level Security (RLS) no banco de dados PostgreSQL do Supabase. Cada tabela terá uma coluna tenant_id e políticas rigorosas que impedem o cruzamento de dados entre empresas.
+	Comunicação (API)
+	Todas as rotas do FastAPI estarão protegidas por validação rígida de esquemas com o Pydantic para evitar injeções e payloads maliciosos.
+	RBAC (Acessos)
+	Controle de Acesso Baseado em Funções (Admin, Gerente, Atendente), onde o Admin gere a Base de Conhecimento e as configurações, e os Atendentes limitam-se à resolução de tickets.
+	
+
+3. Arquitetura Técnica e Infraestrutura (Ajustado)
+* Back-end: Python 3.12+ com FastAPI (Alta performance para fluxos assíncronos e processamento de agentes LangGraph).
+* Front-end: React (Next.js) + Tailwind CSS + shadcn/ui.
+* Banco de Dados: Supabase (PostgreSQL + pgvector) garantindo RAG Híbrido, Auth e Storage.
+* Integração WhatsApp: Uazapi (Comunicação bidirecional via Webhooks).
+* Cache e Mensageria: Redis.
+3.1 Estratégia de Hospedagem: Vercel e Hostinger VPS
+Visando unir a praticidade de deploy e a robustez para processamento de IA, o sistema adota uma arquitetura desacoplada:
+* Front-end na Vercel: O Next.js foi criado e é mantido pela Vercel. O plano gratuito (Hobby) oferece suporte nativo e irrestrito até as versões mais recentes (incluindo o Next.js 15). Dificuldades de deploy anteriores em versões novas geralmente ocorrem devido a incompatibilidades da Engine do Node.js requerida (Next 15 exige Node 18.18+ ou 20+). A Vercel cuidará da UI, entregando alta disponibilidade global e praticidade no CI/CD.
+* Back-end na Hostinger VPS (Easypanel): Um serviço isolado (ex: "portal") rodando em Docker através do Easypanel hospedará o FastAPI, os workers de IA, e o Redis. Isso garante que longas chamadas aos LLMs ou ingestões pesadas de documentos não sofram os timeouts rigorosos de ambientes serverless.
+4. Fluxo de Atendimento e Inteligência (Handoff e Protocolos)
+O sistema operará de forma inteligente alternando entre os estados Automático, Pausado e Híbrido.
+* Gatilho de Ticket e Webhook: Se a IA atingir um nível baixo de confiança (score do RAG) ou o cliente solicitar um atendente, o sistema cria um ticket "Aberto", dispara um alerta visual/sonoro no painel e envia um aviso para os supervisores através da Uazapi.
+* O Protocolo "fromMe": Para intervenção cirúrgica, se o atendente humano responder diretamente pelo celular ou pelo painel (identificado como fromMe: true via Uazapi), a IA entra instantaneamente em modo "Pausado" para aquele lead. O operador poderá retomar a automação a qualquer momento via botão no painel ou comando como /ia_on.
+* Processamento de Imagens e OCR: Integrando o modelo GPT-4o-mini. Imagens de texto (comprovantes de pagamento) terão dados extraídos por OCR. Para imagens não interpretáveis (memes, fotos irrelevantes), o bot recusa educadamente: "Recebi sua imagem, mas não consegui processar as informações. Poderia descrever o que precisa?".
+5. Gestão de Tickets e Multi-atendentes
+O módulo de helpdesk supera um simples painel de chat ao incluir uma hierarquia organizacional completa:
+1. Múltiplas Filas: Segmentação em departamentos como Comercial, Financeiro e Suporte Técnico.
+2. Status do Ticket: Transições fluidas entre Aguardando IA, Aguardando Atendente, Em Atendimento e Resolvido.
+3. Notificações Automáticas e Acompanhamento: Aberturas de tickets disparam notificações assíncronas ao Lead (ex: "Seu atendimento foi iniciado. Protocolo #123"), mantendo a transparência em mudanças manuais de status.
+6. Gestão da Base de Conhecimento (RAG)
+O coração da inteligência da empresa estará em um modal dedicado para que o Admin (ou a agência) atualize os conhecimentos da IA em tempo real.
+* Flexibilidade de Ingestão: Modal de upload que aceita PDFs, DOCX, TXT e links (URLs).
+* Atualização Parcial (Versioning): Para atualizar um único PDF, não será necessário reconstruir toda a base. O sistema gerenciará exclusões via metadados diretamente no Supabase Vector Store e processará o novo documento.
+* Sincronização em Background: Processamento (Chunking e Embeddings) ocorre em filas assíncronas no back-end (Hostinger), sem causar travamentos no portal.
+7. Estratégia de Negócio e Monetização
+Diferente de um modelo SaaS simples (commodity), o ARIA foca na oferta de serviço premium e integração sob medida (Implantação + Recorrência):
+* Taxa de Setup (Implantação): Cobrança upfront abrangendo a curadoria da base de conhecimento, treinamento personalizado da IA para o cliente, criação de perfis e mapeamento de fluxos via Uazapi.
+* Mensalidade (Recorrência): Plano base da plataforma com taxa variável (se necessário) baseada no uso intenso de transcrição de áudio, geração de imagens, consumo de tokens ou volume de conversas atendidas.
+8. Próximos Passos (Roadmap Consolidado)
+Com o escopo delineado e aprovado, as etapas imediatas (Fase 0 e 1) compreendem:
+* Mapeamento final do esquema de banco de dados (Supabase) exportando a modelagem e histórico atual do n8n.
+* Criação do repositório front-end configurado na Vercel, atrelado à base visual shadcn/ui.
+* Subida do contêiner Docker via Easypanel na Hostinger para estabelecer a API FastAPI e conexões iniciais com os Webhooks da Uazapi.
+
+
+
+
+9. Estrutura de Features do Front-end (Next.js)
+A interface será construída com foco em reatividade em tempo real e eficiência de cliques, garantindo que a equipe de suporte e os gestores tenham visibilidade total sem fricção. A arquitetura front-end será hospedada na Vercel para garantir alta disponibilidade e deploy simplificado.
+9.1. Módulo de Autenticação e Onboarding (SaaS Flow)
+Porta de entrada para novas empresas, totalmente automatizada para reduzir o atrito na implantação.
+* Registro Autenticado: Integração com Supabase Auth (JWT via cookies HttpOnly). Criação automática de um tenant_id exclusivo vinculado ao administrador.
++1
+* Wizard de Onboarding: Fluxo guiado para configuração inicial:
+   1. Perfil: Nome da empresa, setor e identidade visual (white-label).
+   2. Conexão WhatsApp: Leitura de QR Code para vincular a instância via Uazapi.
+   3. Especialistas: Definição básica das personas (Comercial, Suporte, Financeiro).
++1
+   4. Conhecimento: Upload dos primeiros documentos para o RAG.
+   5. Testes: Envio de mensagem de teste para validação da rota.
+      * Billing e Assinatura: Painel para gestão de pagamento da taxa de setup e da mensalidade recorrente.
+9.2. Dashboard Operacional (A Torre de Controle)
+O diferencial número 1 do produto, oferecendo visibilidade total da operação.
+      * Visão Geral em Tempo Real: Cards dinâmicos mostrando volume de conversas ativas, tempo médio e taxa de resolução .
++1
+      * Live Feed de Conversas: Lista de clientes interagindo no momento, atualizada via WebSockets.
+      * Indicadores de Saúde (Badges): Score de confiança do RAG colorido em cada card (ex: Verde >0.8, Amarelo 0.5–0.8, Vermelho <0.5).
+9.3. Painel de Atendimento (Copiloto Humano)
+Interface otimizada para o operador que assume a conversa após a escalada.
+         * Timeline Híbrida: Diferenciação visual clara entre as mensagens enviadas pela IA, pelo cliente e pelo humano.
+         * Resumo de Contexto Inteligente: Painel lateral com um resumo automático gerado pela IA sobre a solicitação do cliente antes da escalada.
+         * Controle de Estado do Agente: Botões de ação rápida para o operador (Modo Injeção, Assumir Conversa) que acionam o protocolo fromMe para pausar ou retomar a IA .
++1
+         * Visualizador de Mídia OCR: Componente otimizado para exibir imagens (como comprovantes) com os dados extraídos visíveis ao lado.
+9.4. Módulo de Gestão de Colaboradores e Equipes (RBAC)
+Organização da operação humana com rigoroso controle de acessos por tenant.
+            * Sistema de Convites: Disparo de convites via e-mail para novos membros da equipe.
+            * Controle de Acessos (RBAC): Definição de papéis:
+            * Admin: Acesso total (faturamento, desenvolvedor, RAG, usuários).
+            * Gerente: Acesso a dashboards, relatórios e curadoria da base.
+            * Atendente: Acesso restrito apenas à fila de tickets designada.
+            * Gestão de Departamentos e Filas: Criação de setores e roteamento específico para a equipe certa (ex: ticket financeiro vai apenas para atendentes financeiros).
+            * Status de Disponibilidade: Toggle (Online/Ausente/Offline) para garantir que a IA só faça transbordo para humanos disponíveis.
+            * Monitoramento e Revogação: Visão gerencial da capacidade da equipe em tempo real e reatribuição de tickets em caso de desligamento do colaborador.
+9.5. Gestor da Base de Conhecimento (RAG UI)
+Interface dedicada para o cliente gerir o que a IA sabe de forma auto-evolutiva.
+            * Painel de Ingestão: Upload drag-and-drop para PDFs, DOCX, TXT e URLs.
++1
+            * Sincronização em Background: Indicadores visuais de processamento sem travar a interface do usuário.
+            * Atualização Parcial (Versioning): Capacidade de excluir e reindexar documentos individuais através de metadados, sem afetar toda a base.
+            * Curadoria (Feedback Loop): Interface onde o sistema sugere a adição de novas soluções ao RAG com base nos tickets resolvidos humanamente.
+9.6. Módulo Developer (Extensibilidade e Integração)
+Focado em integrações corporativas e desenvolvedores de clientes B2B.
+               * Gestão de API Keys: Painel para emissão e revogação de chaves seguras por tenant.
+               * Webhooks Outbound: Configuração de URLs para receber eventos externos (ex: ticket.created, message.received, status.changed).
+               * Documentação Interativa: Página refletindo o Swagger/Scalar do FastAPI para testes rápidos.
+               * Logs Técnicos: Visualizador para auditoria de chamadas de LLM e eventos da Uazapi.
+9.7. Módulo de Analytics e Relatórios
+Inteligência de negócio extraída das conversas.
+               * Mapa de Dores Recorrentes: Gráficos (Treemap) agrupando tickets similares semanticamente para identificar problemas crônicos .
++1
+               * Score de Saúde do Cliente: Painel listando clientes em risco de churn com base na frequência e sentimento das interações .
+               * Gráficos de Performance: Exportação de dados (CSV/PDF) sobre Tempo Médio de Resposta (SLA) e taxa de retenção autônoma da IA .
++1
+
+10 Frontend
+
+Existe uma sinergia perfeita entre eles: o HTML já implementa visualmente os módulos que o PRD exige (Dashboard Operacional, Painel de Atendimento/Copiloto, Gestão de Tickets e Base de Conhecimento).
+
+Para garantir que o frontend final (em Next.js + Tailwind) fique visualmente idêntico e com a mesma qualidade de design do protótipo HTML, eis o que eu poderei fazer por você:
+
+Extração do Design System:
+
+Posso mapear todas as variáveis CSS do HTML (--bg-0, --v-500, --ok, --warn, gradientes como --grad-violet) e configurá-las nativamente no seu tailwind.config.js ou no globals.css.
+Posso importar as fontes corretas (Inter, Space Grotesk e JetBrains Mono) e defini-las nas utilidades do Tailwind.
+Criação de Componentes Base (com shadcn/ui e Tailwind):
+
+Posso transformar os elementos repetitivos do HTML (como as pills de status, botões com gradiente, cards com efeito glass e o .brand-dot brilhante) em componentes React reutilizáveis.
+Mesmo usando a base do shadcn/ui, posso sobrescrever os estilos padrão para que fiquem com a estética premium exata do seu HTML (ex: bordas suaves, sombras projetadas e fundos semi-transparentes).
+Estruturação dos Layouts Principais:
+
+Posso criar o "App Shell" em React (o esqueleto da aplicação), incluindo a barra lateral (.side), a barra de navegação estreita (.rail) e o cabeçalho (.topbar).
+Posso replicar perfeitamente a responsividade definida no HTML usando as classes utilitárias do Tailwind (ex: ocultar a sidebar em telas menores e ajustar os grids de KPIs).
+Implementação das Telas (Views):
+
+Posso separar e criar as páginas específicas detalhadas no HTML: a tela de Login (com as duas variantes), a interface do Chat (com o painel lateral de contexto e o "Chain of Thought" da IA) e a tela de Gestão de Tickets (tabelas e Kanban).

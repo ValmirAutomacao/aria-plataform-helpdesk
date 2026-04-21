@@ -1,0 +1,1446 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ARIA — Helpdesk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-0:#07060b;--bg-1:#0c0a13;--bg-2:#14111d;--bg-3:#1c1828;--bg-4:#25203a;
+  --fg-0:#fff;--fg-1:#eae6f5;--fg-2:#9a94b3;--fg-3:#6a6480;--fg-4:#3e3a54;
+  --line-1:rgba(255,255,255,.06);--line-2:rgba(255,255,255,.10);--line-3:rgba(255,255,255,.16);
+  --v-200:#c6b8ff;--v-400:#8a6bff;--v-500:#6e46ff;--v-600:#5a34f0;--v-700:#4a26c9;--v-900:#1e1247;
+  --ok:#2ecf8b;--ok-s:rgba(46,207,139,.14);--warn:#f5b64b;--warn-s:rgba(245,182,75,.14);--bad:#ff5e7a;--bad-s:rgba(255,94,122,.14);--info:#5cc4ff;
+  --ring-v:0 0 0 3px rgba(110,70,255,.25);--shadow-md:0 6px 24px rgba(0,0,0,.35);
+  --grad-violet:linear-gradient(135deg,#6e46ff 0%,#9a6bff 60%,#b983ff 100%);
+  --grad-hero:radial-gradient(1200px 600px at 20% 30%,rgba(110,70,255,.35),transparent 60%),radial-gradient(900px 500px at 85% 80%,rgba(92,196,255,.18),transparent 60%),linear-gradient(180deg,#0a0814 0%,#110c1f 100%);
+  --grad-edge:linear-gradient(180deg,transparent 0%,rgba(110,70,255,.15) 50%,transparent 100%);
+  --font-sans:'Inter',system-ui,sans-serif;--font-display:'Space Grotesk','Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg-0);color:var(--fg-1);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea,select{font-family:inherit;color:inherit;background:transparent;border:0;outline:0}
+
+/* top nav chrome */
+.nav-chrome{position:sticky;top:0;z-index:50;background:rgba(7,6,11,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line-1);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand-wordmark{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:-.01em}
+.brand-dot{width:28px;height:28px;border-radius:9px;background:var(--grad-violet);display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700;box-shadow:0 6px 20px rgba(110,70,255,.5),inset 0 1px 0 rgba(255,255,255,.3)}
+.screens-tabs{display:flex;gap:3px;flex-wrap:wrap;flex:1;justify-content:center}
+.screen-tab{padding:7px 13px;border-radius:999px;font-size:13px;font-weight:500;color:var(--fg-2);transition:all .15s}
+.screen-tab:hover{color:var(--fg-1);background:var(--bg-2)}
+.screen-tab.active{color:#fff;background:var(--bg-3);box-shadow:inset 0 0 0 1px var(--line-2)}
+.screen-tab.active::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--v-500);box-shadow:0 0 8px var(--v-500);margin-right:8px;vertical-align:middle}
+.variant-pills{display:flex;gap:3px;padding:3px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:999px}
+.vpill{padding:5px 13px;border-radius:999px;font-size:12px;color:var(--fg-2);font-weight:500}
+.vpill.active{background:var(--grad-violet);color:#fff;box-shadow:0 4px 14px rgba(110,70,255,.5)}
+
+/* stage */
+.stage{min-height:calc(100vh - 57px);background:var(--bg-0);position:relative}
+.screen{display:none}
+.screen.active{display:block}
+
+/* app shell */
+.app{width:100%;min-height:calc(100vh - 57px);display:grid;grid-template-columns:72px 256px 1fr;background:var(--bg-1);overflow:hidden;position:relative}
+.app.three-col{grid-template-columns:72px 256px 1fr 340px}
+
+/* rail */
+.rail{background:var(--bg-0);border-right:1px solid var(--line-1);padding:18px 0;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.rail::after{content:'';position:absolute;top:0;right:-1px;bottom:0;width:1px;background:var(--grad-edge);pointer-events:none}
+.rail-logo{width:42px;height:42px;border-radius:12px;background:var(--grad-violet);display:grid;place-items:center;color:#fff;font-family:var(--font-display);font-weight:700;font-size:20px;box-shadow:0 10px 30px rgba(110,70,255,.55),inset 0 1px 0 rgba(255,255,255,.3);margin-bottom:14px}
+.rail-btn{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:var(--fg-2);transition:all .15s;position:relative}
+.rail-btn:hover{background:var(--bg-2);color:var(--fg-1)}
+.rail-btn.active{background:var(--bg-3);color:#fff;box-shadow:inset 0 0 0 1px var(--line-2)}
+.rail-btn.active::before{content:'';position:absolute;left:-12px;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--grad-violet)}
+.rail-btn svg{width:20px;height:20px}
+.rail-spacer{flex:1}
+
+/* sidebar */
+.side{background:var(--bg-1);border-right:1px solid var(--line-1);display:flex;flex-direction:column;overflow:hidden}
+.side-top{padding:16px 14px 12px;border-bottom:1px solid var(--line-1)}
+.ws-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--bg-2);border:1px solid var(--line-1)}
+.ws-avatar{width:32px;height:32px;border-radius:9px;background:var(--grad-violet);display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0}
+.ws-text{min-width:0;flex:1}
+.ws-name{font-size:13px;font-weight:600;color:var(--fg-0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ws-mail{font-size:11px;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-mono)}
+.ws-more{color:var(--fg-3);padding:2px;border-radius:6px}
+.nav-section{padding:14px 10px 6px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-3);padding:0 8px 8px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--fg-2);font-size:13px;font-weight:500;cursor:pointer;transition:all .12s}
+.nav-item:hover{background:var(--bg-2);color:var(--fg-1)}
+.nav-item.active{background:var(--bg-3);color:#fff;box-shadow:inset 0 0 0 1px var(--line-2)}
+.nav-item.active svg{color:var(--v-400)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;stroke-width:1.8}
+.nav-item .chev{margin-left:auto;font-size:12px;color:var(--fg-3)}
+.nav-item .badge{margin-left:auto;font-size:10px;padding:2px 7px;border-radius:999px;background:var(--v-900);color:var(--v-200);font-weight:600}
+.nav-item .dot-ok{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.side-bottom{margin-top:auto;padding:10px;border-top:1px solid var(--line-1);display:flex;flex-direction:column;gap:2px}
+
+/* main */
+.main{background:var(--bg-1);display:flex;flex-direction:column;min-width:0;overflow:hidden;position:relative}
+.topbar{height:56px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--line-1);background:var(--bg-1)}
+.crumbs{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-2)}
+.crumbs .sep{color:var(--fg-4)}
+.crumbs .curr{color:var(--fg-0);font-weight:500}
+.crumb-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px 3px 6px;border-radius:999px;background:var(--v-900);color:var(--v-200);font-size:12px;font-weight:500}
+.topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+.icon-btn{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--fg-2);border:1px solid var(--line-1);background:var(--bg-2);transition:all .12s;position:relative}
+.icon-btn:hover{color:var(--fg-0);background:var(--bg-3)}
+.icon-btn svg{width:16px;height:16px}
+.icon-btn .n{position:absolute;top:-4px;right:-4px;background:var(--v-500);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:999px}
+.chip-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:500;color:var(--fg-1);border:1px solid var(--line-1);background:var(--bg-2)}
+.chip-btn:hover{background:var(--bg-3)}
+.chip-btn svg{width:14px;height:14px}
+.btn-primary{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;color:#fff;background:var(--grad-violet);box-shadow:0 6px 18px rgba(110,70,255,.45),inset 0 1px 0 rgba(255,255,255,.2);transition:transform .1s}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-primary svg{width:14px;height:14px}
+
+.promo{margin:14px 20px 0;padding:12px 16px;border-radius:14px;background:linear-gradient(100deg,#4a26c9 0%,#6e46ff 40%,#9a6bff 100%);display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(110,70,255,.3)}
+.promo::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(400px 120px at 80% -20%,rgba(255,255,255,.2),transparent 60%)}
+.promo-icon{width:30px;height:30px;border-radius:10px;background:rgba(255,255,255,.18);display:grid;place-items:center;color:#fff}
+.promo-icon svg{width:16px;height:16px}
+.promo-text{flex:1;color:#fff;font-size:13px;font-weight:500}
+.promo-btn{background:rgba(0,0,0,.3);color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.2)}
+
+.scroll{overflow:auto;flex:1;min-height:0}
+.scroll::-webkit-scrollbar{width:10px;height:10px}
+.scroll::-webkit-scrollbar-thumb{background:var(--bg-3);border-radius:6px;border:2px solid var(--bg-1)}
+
+/* atoms */
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:500}
+.pill.v{background:var(--v-900);color:var(--v-200)}
+.pill.ok{background:var(--ok-s);color:var(--ok)}
+.pill.warn{background:var(--warn-s);color:var(--warn)}
+.pill.bad{background:var(--bad-s);color:var(--bad)}
+.pill.ghost{background:var(--bg-2);color:var(--fg-2);border:1px solid var(--line-1)}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+.card{background:var(--bg-2);border:1px solid var(--line-1);border-radius:14px;padding:16px}
+.card.elev{background:var(--bg-3)}
+.card h4{margin:0 0 4px;font-size:14px;font-weight:600;color:var(--fg-0)}
+.card .sub{font-size:12px;color:var(--fg-3);margin:0}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 20px 0}
+.kpi{background:var(--bg-2);border:1px solid var(--line-1);border-radius:14px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--v-500),transparent);opacity:.5}
+.kpi-label{font-size:11px;color:var(--fg-3);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.kpi-value{font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--fg-0);letter-spacing:-.02em;line-height:1}
+.kpi-delta{font-size:11px;margin-top:4px;display:inline-flex;align-items:center;gap:4px;font-weight:500}
+.kpi-delta.up{color:var(--ok)}.kpi-delta.down{color:var(--bad)}
+
+/* chat */
+.bubble{padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.45;max-width:540px}
+.bubble.them{background:var(--bg-3);color:var(--fg-1);border:1px solid var(--line-1)}
+.bubble.me{background:var(--grad-violet);color:#fff;box-shadow:0 8px 20px rgba(110,70,255,.3);align-self:flex-end}
+.bubble.ai{background:var(--bg-2);border:1px solid var(--line-2);color:var(--fg-1);position:relative}
+.bubble.ai::before{content:'AI';position:absolute;top:-8px;left:12px;background:var(--grad-violet);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;letter-spacing:.1em}
+.meta-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg-3);margin-bottom:4px}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#f4a5b8,#b87a98);display:inline-block;flex-shrink:0;border:1.5px solid var(--bg-1)}
+.avatar.b{background:var(--grad-violet);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+.avatar.c{background:linear-gradient(135deg,#9a6bff,#5cc4ff)}
+
+/* table */
+table.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+table.tbl th{text-align:left;padding:10px 14px;font-size:11px;font-weight:500;color:var(--fg-3);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--line-1);background:var(--bg-2);position:sticky;top:0}
+table.tbl td{padding:12px 14px;border-bottom:1px solid var(--line-1);color:var(--fg-1);vertical-align:middle}
+table.tbl tr:hover td{background:var(--bg-2)}
+
+/* LOGIN */
+.login-wrap{min-height:calc(100vh - 57px);display:grid;grid-template-columns:1fr 1fr;background:var(--bg-0);position:relative;overflow:hidden}
+.login-vis{position:relative;overflow:hidden;background:linear-gradient(135deg,#1a0d3d 0%,#3d1a7a 50%,#6e46ff 100%);display:flex;flex-direction:column;justify-content:space-between;padding:48px}
+.login-vis::before{content:'';position:absolute;top:-20%;right:-20%;width:80%;height:80%;background:radial-gradient(circle,rgba(255,255,255,.3) 0%,transparent 60%);filter:blur(60px)}
+.login-vis::after{content:'';position:absolute;bottom:-30%;left:-10%;width:70%;height:70%;background:radial-gradient(circle,rgba(92,196,255,.4) 0%,transparent 55%);filter:blur(80px)}
+.login-vis-inner{position:relative;z-index:1;color:#fff;display:flex;flex-direction:column;gap:36px}
+.login-vis h2{font-family:var(--font-display);font-size:34px;line-height:1.15;margin:0;font-weight:600;letter-spacing:-.02em;max-width:420px}
+.login-vis p{margin:0;font-size:15px;opacity:.85;max-width:380px;line-height:1.5}
+.vis-card{position:relative;z-index:1;background:rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:18px;color:#fff;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.vis-card .vc-title{font-size:13px;opacity:.8;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.vis-card .vc-metric{font-family:var(--font-display);font-size:30px;font-weight:600;letter-spacing:-.02em}
+.vis-card .vc-sub{font-size:12px;opacity:.8;margin-top:4px}
+
+.login-form-wrap{display:flex;align-items:center;justify-content:center;padding:48px;background:var(--bg-1)}
+.login-form{width:min(400px,100%)}
+.login-form .sm-brand{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+.login-form .sm-brand .brand-dot{width:34px;height:34px;font-size:17px;border-radius:10px}
+.login-form .sm-brand span{font-family:var(--font-display);font-weight:700;font-size:20px}
+.login-form h1{font-family:var(--font-display);font-size:30px;font-weight:600;margin:0 0 8px;color:var(--fg-0);letter-spacing:-.02em}
+.login-form .lead{font-size:14px;color:var(--fg-2);margin:0 0 28px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--fg-2);font-weight:500;margin-bottom:6px}
+.input{display:flex;align-items:center;gap:10px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:12px;padding:0 14px;height:46px;transition:all .15s}
+.input:focus-within{border-color:var(--v-500);box-shadow:var(--ring-v)}
+.input svg{width:16px;height:16px;color:var(--fg-3);flex-shrink:0}
+.input input,.input select{flex:1;font-size:14px;color:var(--fg-0);height:100%}
+.field-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:12px}
+.check{display:inline-flex;align-items:center;gap:7px;color:var(--fg-2)}
+.check input{width:15px;height:15px;accent-color:var(--v-500)}
+.link{color:var(--v-400);text-decoration:none;font-weight:500}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--fg-3);font-size:11px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line-1)}
+.sso{display:flex;gap:10px}
+.sso-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;padding:11px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:12px;font-size:13px;font-weight:500;color:var(--fg-1)}
+.sso-btn:hover{background:var(--bg-3)}
+.sso-btn svg{width:16px;height:16px}
+.login-foot{text-align:center;margin-top:20px;color:var(--fg-3);font-size:12px}
+.btn-wide{width:100%;padding:13px;justify-content:center;font-size:14px;margin-top:6px}
+
+/* chat layout */
+.chat-layout{display:grid;grid-template-columns:1fr 320px;flex:1;min-height:0;overflow:hidden}
+.conv-scroll{padding:24px 28px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;background:var(--bg-1)}
+.conv-start{text-align:center;color:var(--fg-3);font-size:11px;margin:8px 0 10px;display:flex;align-items:center;gap:10px}
+.conv-start::before,.conv-start::after{content:'';flex:1;height:1px;background:var(--line-1)}
+.msg-group{display:flex;flex-direction:column;gap:6px}
+.msg-group.right{align-items:flex-end}
+
+/* context panel */
+.ctx{background:var(--bg-1);border-left:1px solid var(--line-1);display:flex;flex-direction:column;overflow-y:auto}
+.ctx-head{padding:16px;border-bottom:1px solid var(--line-1);text-align:center}
+.ctx-avatar{width:64px;height:64px;border-radius:50%;margin:0 auto 10px;background:linear-gradient(135deg,#f4a5b8,#b87a98);border:3px solid var(--bg-1);box-shadow:0 0 0 2px var(--v-500),0 0 20px rgba(110,70,255,.4)}
+.ctx-name{font-size:15px;font-weight:600;color:#fff;margin:0}
+.ctx-mail{font-size:12px;color:var(--fg-3);margin:2px 0 0;font-family:var(--font-mono)}
+.ctx-tabs{display:flex;gap:2px;padding:10px;border-bottom:1px solid var(--line-1)}
+.ctx-tab{flex:1;padding:7px 10px;border-radius:8px;color:var(--fg-2);font-size:12px;font-weight:500;text-align:center}
+.ctx-tab.active{color:#fff;background:var(--bg-3);box-shadow:inset 0 0 0 1px var(--line-2)}
+.ctx-body{padding:14px;display:flex;flex-direction:column;gap:12px}
+.ctx-card{background:var(--bg-2);border:1px solid var(--line-1);border-radius:12px;padding:12px}
+.ctx-card h5{margin:0 0 8px;font-size:11px;font-weight:600;color:var(--fg-3);letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.ctx-card h5 svg{width:12px;height:12px;color:var(--v-400)}
+.ctx-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line-1);font-size:12px;color:var(--fg-1)}
+.ctx-row:first-of-type{border:0}
+.ctx-row svg{width:14px;height:14px;color:var(--fg-3);flex-shrink:0}
+.ctx-row .k{color:var(--fg-3);min-width:78px;font-size:11px}
+
+/* composer */
+.composer{border-top:1px solid var(--line-1);background:var(--bg-1);padding:14px 28px 18px}
+.quick-chips{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.quick-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line-1);font-size:12px;font-weight:500;color:var(--fg-1)}
+.quick-chip:hover{background:var(--bg-3)}
+.hint-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,rgba(245,182,75,.08),rgba(110,70,255,.08));border:1px solid var(--line-1);font-size:12px;color:var(--fg-2);margin-bottom:10px}
+.hint-bar svg{width:14px;height:14px;color:var(--warn);flex-shrink:0}
+.hint-bar code{background:var(--bg-3);padding:1px 6px;border-radius:4px;font-family:var(--font-mono);font-size:11px;color:var(--fg-0)}
+.input-area{background:var(--bg-2);border:1px solid var(--line-2);border-radius:14px;padding:14px 16px;min-height:92px;display:flex;flex-direction:column;gap:10px}
+.input-area:focus-within{border-color:var(--v-500)}
+.input-placeholder{color:var(--fg-3);font-size:14px;flex:1}
+.input-tools{display:flex;align-items:center;gap:6px}
+.tool-btn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--fg-2)}
+.tool-btn:hover{background:var(--bg-3);color:var(--fg-1)}
+.tool-btn svg{width:16px;height:16px}
+.send-btn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--grad-violet);color:#fff;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(110,70,255,.45)}
+.send-btn svg{width:14px;height:14px}
+
+/* CoT */
+.cot{border:1px solid var(--line-2);border-radius:12px;background:linear-gradient(180deg,rgba(110,70,255,.05),transparent);padding:12px;max-width:540px}
+.cot-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--v-200);font-weight:600;margin-bottom:10px}
+.cot-head svg{width:14px;height:14px}
+.cot-step{display:flex;gap:10px;font-size:12px;color:var(--fg-2);padding:6px 0;border-top:1px dashed var(--line-1)}
+.cot-step:first-of-type{border-top:0}
+.cot-step .n{width:18px;height:18px;border-radius:50%;background:var(--v-900);color:var(--v-200);display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0}
+.cot-step b{color:var(--fg-0);font-weight:500}
+
+/* Kanban */
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:14px;padding:20px}
+.kcol{background:var(--bg-2);border:1px solid var(--line-1);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.kcol-head{padding:12px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line-1)}
+.kcol-head h5{margin:0;font-size:13px;font-weight:600;color:#fff}
+.kcol-count{margin-left:auto;font-size:11px;color:var(--fg-3);background:var(--bg-3);padding:2px 8px;border-radius:999px}
+.kcol-body{padding:10px;display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 260px);overflow-y:auto}
+.kticket{background:var(--bg-3);border:1px solid var(--line-1);border-radius:10px;padding:12px;cursor:grab;transition:all .12s}
+.kticket:hover{transform:translateY(-1px);border-color:var(--line-2)}
+.kticket-id{font-family:var(--font-mono);font-size:11px;color:var(--fg-3);font-weight:500}
+.kticket-title{font-size:13px;font-weight:500;color:var(--fg-0);margin:4px 0 8px;line-height:1.4}
+.kticket-foot{display:flex;align-items:center;gap:8px}
+
+/* KB */
+.kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;padding:20px}
+.kb-card{background:var(--bg-2);border:1px solid var(--line-1);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px;transition:all .15s;cursor:pointer}
+.kb-card:hover{border-color:var(--line-2);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.kb-icon{width:40px;height:48px;border-radius:6px;background:linear-gradient(135deg,var(--v-700),var(--v-500));position:relative;box-shadow:0 6px 16px rgba(110,70,255,.3)}
+.kb-icon::before{content:'';position:absolute;top:6px;left:6px;right:6px;height:2px;background:rgba(255,255,255,.4);border-radius:1px;box-shadow:0 5px 0 rgba(255,255,255,.2),0 10px 0 rgba(255,255,255,.15),0 15px 0 rgba(255,255,255,.1)}
+.kb-card h5{margin:0;font-size:14px;font-weight:600;color:#fff;line-height:1.35}
+.kb-meta{font-size:11px;color:var(--fg-3);font-family:var(--font-mono);display:flex;align-items:center;gap:6px}
+.upload-zone{margin:20px;padding:32px;border-radius:16px;border:2px dashed var(--line-3);background:linear-gradient(135deg,rgba(110,70,255,.08),rgba(92,196,255,.04));display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.upload-zone svg{width:36px;height:36px;color:var(--v-400)}
+.upload-zone h4{margin:0;font-size:16px;font-weight:600;color:#fff}
+.upload-zone p{margin:0;font-size:13px;color:var(--fg-3)}
+
+/* settings */
+.settings-grid{display:grid;grid-template-columns:220px 1fr;flex:1;min-height:0}
+.settings-nav{padding:24px 14px;border-right:1px solid var(--line-1);display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.settings-body{padding:28px 32px;overflow-y:auto}
+.settings-body h2{font-family:var(--font-display);font-size:24px;font-weight:600;margin:0 0 4px;color:#fff;letter-spacing:-.01em}
+.settings-body .lead{color:var(--fg-3);font-size:14px;margin:0 0 24px}
+.settings-section{margin-bottom:28px}
+.settings-section h3{font-size:15px;font-weight:600;color:#fff;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+.row-def{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:center;padding:16px 0;border-top:1px solid var(--line-1)}
+.row-def:first-of-type{border:0;padding-top:0}
+.row-def .k{font-size:13px;font-weight:500;color:#fff}
+.row-def .d{font-size:12px;color:var(--fg-3);margin-top:3px}
+.row-def .val{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+
+.toggle{width:38px;height:22px;border-radius:999px;background:var(--bg-3);border:1px solid var(--line-2);position:relative;cursor:pointer;transition:all .15s}
+.toggle::before{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--fg-2);transition:all .2s}
+.toggle.on{background:var(--grad-violet);border-color:transparent}
+.toggle.on::before{left:18px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+
+.slider{width:200px;height:6px;border-radius:999px;background:var(--bg-3);position:relative}
+.slider::after{content:'';position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--grad-violet);width:60%}
+.slider::before{content:'';position:absolute;left:calc(60% - 8px);top:-6px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 4px 12px rgba(110,70,255,.6)}
+
+.select-box{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;font-size:13px;color:var(--fg-1)}
+.select-box svg{width:14px;height:14px;color:var(--fg-3)}
+
+/* Analytics */
+.chart-card{background:var(--bg-2);border:1px solid var(--line-1);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.chart-head{display:flex;align-items:center;gap:10px}
+.chart-head h4{margin:0;font-size:14px;font-weight:600;color:#fff}
+.chart-head .pill{margin-left:auto}
+.lgnd{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--fg-3)}
+.lgnd span{display:inline-flex;align-items:center;gap:6px}
+.lgnd i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.lgnd .c1{background:var(--v-500)}.lgnd .c2{background:var(--info)}.lgnd .c3{background:var(--ok)}.lgnd .c4{background:var(--warn)}
+
+.bars{display:flex;align-items:flex-end;gap:10px;height:180px;padding:10px 0}
+.bars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.bars .bg{width:100%;display:flex;flex-direction:column-reverse;gap:2px;height:150px;align-items:center}
+.bars .seg{width:70%;border-radius:3px;min-height:2px}
+.bars .seg.a{background:var(--v-500)}
+.bars .seg.b{background:var(--info)}
+.bars .seg.c{background:var(--ok)}
+.bars .label{font-size:10px;color:var(--fg-3);font-family:var(--font-mono)}
+
+.donut{width:160px;height:160px;border-radius:50%;background:conic-gradient(var(--v-500) 0 62%,var(--info) 62% 82%,var(--ok) 82% 94%,var(--warn) 94% 100%);position:relative;flex-shrink:0}
+.donut::after{content:'';position:absolute;inset:22%;background:var(--bg-2);border-radius:50%}
+.donut-center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.donut-center .v{font-family:var(--font-display);font-size:26px;font-weight:600;color:#fff}
+.donut-center .l{font-size:10px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.1em}
+
+.line-chart{position:relative;height:180px;padding:10px 0}
+.line-chart svg{width:100%;height:100%;overflow:visible}
+.gridline{stroke:var(--line-1);stroke-width:1}
+
+.bubble-cluster{position:relative;height:340px;background:radial-gradient(circle at 50% 50%,rgba(110,70,255,.08),transparent 70%);border-radius:12px;border:1px solid var(--line-1);overflow:hidden}
+.bub{position:absolute;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:500;text-align:center;padding:8px;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .2s;cursor:pointer}
+.bub:hover{transform:scale(1.05)}
+.bub small{display:block;opacity:.7;font-size:9px;font-family:var(--font-mono)}
+
+/* login variant B specific */
+.login-centered{min-height:calc(100vh - 57px);background:var(--grad-hero);display:grid;place-items:center;padding:40px 20px;position:relative;overflow:hidden}
+.login-centered::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,.04) 1px,transparent 0);background-size:24px 24px;pointer-events:none}
+.login-card{width:min(420px,100%);background:var(--bg-1);border:1px solid var(--line-2);border-radius:20px;padding:36px;box-shadow:0 40px 100px rgba(0,0,0,.6),0 0 0 1px rgba(110,70,255,.1);position:relative;z-index:1}
+.login-card::before{content:'';position:absolute;inset:-1px;border-radius:20px;background:linear-gradient(135deg,rgba(110,70,255,.5),transparent 40%,rgba(92,196,255,.3));z-index:-1;filter:blur(8px);opacity:.6}
+
+/* Responsive */
+@media (max-width:1100px){
+  .app.three-col{grid-template-columns:72px 220px 1fr}
+  .ctx{display:none}
+  .chat-layout{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:860px){
+  .app,.app.three-col{grid-template-columns:56px 1fr}
+  .side{display:none}
+  .kanban{grid-template-columns:1fr}
+  .login-wrap{grid-template-columns:1fr}
+  .login-vis{display:none}
+  .settings-grid{grid-template-columns:1fr}
+  .settings-nav{display:none}
+}
+
+/* tweaks panel */
+.tweaks{position:fixed;right:16px;bottom:16px;z-index:100;background:var(--bg-2);border:1px solid var(--line-2);border-radius:14px;padding:12px;display:none;width:220px;box-shadow:var(--shadow-md)}
+.tweaks.on{display:block}
+.tweaks h6{margin:0 0 10px;font-size:11px;font-weight:600;color:var(--fg-3);letter-spacing:.08em;text-transform:uppercase}
+.tweaks label{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:12px;color:var(--fg-1)}
+</style>
+</head>
+<body data-screen-label="ARIA Helpdesk">
+
+<nav class="nav-chrome">
+  <div class="brand-wordmark">
+    <span class="brand-dot">A</span>
+    <span>ARIA</span>
+    <span class="pill v" style="margin-left:4px">helpdesk · hi-fi</span>
+  </div>
+  <div class="screens-tabs" id="screenTabs"></div>
+  <div class="variant-pills" id="variantPills">
+    <button class="vpill active" data-v="a">A</button>
+    <button class="vpill" data-v="b">B</button>
+  </div>
+</nav>
+
+<main class="stage" id="stage"></main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12c0 4.4-4 8-9 8a9.8 9.8 0 0 1-3.6-.7L3 21l1.8-4.7A7.7 7.7 0 0 1 3 12c0-4.4 4-8 9-8s9 3.6 9 8Z"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z"/><path d="M13 6v12"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2V5Z"/><path d="M8 7h8M8 11h8M8 15h5"/></symbol>
+<symbol id="i-cog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+<symbol id="i-bar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-plug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M8 8h8M9 8v6a3 3 0 0 0 6 0V8M12 17v5"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol>
+<symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v5M12 17v5M2 12h5M17 12h5M5 5l3 3M16 16l3 3M5 19l3-3M16 8l3-3"/></symbol>
+<symbol id="i-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3a3 3 0 0 0-3 3v1a3 3 0 0 0-2 5 3 3 0 0 0 2 5v1a3 3 0 0 0 3 3h1V3Zm5 0h1a3 3 0 0 1 3 3v1a3 3 0 0 1 2 5 3 3 0 0 1-2 5v1a3 3 0 0 1-3 3h-1"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 4 9 8 10 4-1 8-5 8-10V6l-8-4Z"/></symbol>
+<symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10 11.5 19.5a5 5 0 0 1-7-7L13 4a3.5 3.5 0 0 1 5 5l-8.5 8.5a2 2 0 1 1-3-3L15 6"/></symbol>
+<symbol id="i-smile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7 10-7"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+<symbol id="i-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4h16v18M8 7h2M8 11h2M8 15h2M14 7h2M14 11h2M14 15h2M9 22v-4h6v4"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-7 8-13a8 8 0 1 0-16 0c0 6 8 13 8 13Z"/><circle cx="12" cy="9" r="3"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></symbol>
+<symbol id="i-chev-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="i-chev-d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 9v7l-4-2v-5L3 4Z"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2 4.2 2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L7.9 9.6a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5 12.8 12.8 0 0 0 2.6.6 2 2 0 0 1 1.7 2Z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+<symbol id="i-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5" fill="currentColor"/><circle cx="19" cy="12" r="2.5" fill="currentColor"/><circle cx="17" cy="17.5" r="2.5" fill="currentColor"/><circle cx="6.5" cy="12" r="2.5" fill="currentColor"/><circle cx="8.5" cy="17.5" r="2.5" fill="currentColor"/><path d="M12 22c5.5 0 10-4.5 10-10 0-4.4-3.6-8-8-8s-8 3.6-8 8 3.6 8 8 8"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-google" viewBox="0 0 24 24"><path fill="#ffffff" d="M21.8 10.2h-9.6v3.8h5.5c-.5 2.6-2.7 4-5.5 4a6 6 0 0 1 0-12 5.5 5.5 0 0 1 3.9 1.5l2.8-2.7A9.4 9.4 0 0 0 12.2 2a10 10 0 1 0 0 20c5 0 9.6-3.6 9.6-10 0-.6 0-1.2-.2-1.8Z"/></symbol>
+<symbol id="i-ms" viewBox="0 0 24 24"><rect x="2" y="2" width="9" height="9" fill="#f25022"/><rect x="13" y="2" width="9" height="9" fill="#7fba00"/><rect x="2" y="13" width="9" height="9" fill="#00a4ef"/><rect x="13" y="13" width="9" height="9" fill="#ffb900"/></symbol>
+</defs></svg>
+
+<div class="tweaks" id="tweaks">
+  <h6>Tweaks</h6>
+  <label>CoT visível <span class="toggle on" data-tweak="cot"></span></label>
+  <label>Densidade <span class="toggle" data-tweak="dense"></span></label>
+  <label>Promo banner <span class="toggle on" data-tweak="promo"></span></label>
+</div>
+
+<script>
+// ============= SCREEN DATA =============
+const SCREENS = [
+  {id:'login', label:'Login'},
+  {id:'chat', label:'Dashboard / Chat IA'},
+  {id:'tickets', label:'Tickets'},
+  {id:'kb', label:'Base de Conhecimento'},
+  {id:'settings', label:'Configurações'},
+  {id:'analytics', label:'Analytics'}
+];
+
+// Helpers
+const ic = (id, cls='') => `<svg class="${cls}"><use href="#i-${id}"/></svg>`;
+const h = (strings, ...vals) => strings.reduce((a,s,i)=>a+s+(vals[i]??''),'');
+
+// ============= SIDEBAR / RAIL (shared) =============
+function rail(active){
+  const items = [
+    {id:'chat', ic:'chat'},
+    {id:'tickets', ic:'ticket'},
+    {id:'kb', ic:'book'},
+    {id:'analytics', ic:'bar'},
+    {id:'settings', ic:'cog'}
+  ];
+  return `<aside class="rail">
+    <div class="rail-logo">A</div>
+    ${items.map(i=>`<button class="rail-btn ${i.id===active?'active':''}" data-goto="${i.id}">${ic(i.ic)}</button>`).join('')}
+    <div class="rail-spacer"></div>
+    <button class="rail-btn">${ic('bell')}</button>
+    <div class="avatar" style="width:32px;height:32px"></div>
+  </aside>`;
+}
+function sidebar(active, section='ops'){
+  return `<aside class="side">
+    <div class="side-top">
+      <div class="ws-card">
+        <div class="ws-avatar">T</div>
+        <div class="ws-text">
+          <div class="ws-name">TechCorp Brasil</div>
+          <div class="ws-mail">marina@techcorp.com.br</div>
+        </div>
+        <button class="ws-more">${ic('chev-d')}</button>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Atendimento</div>
+      <nav class="nav">
+        <div class="nav-item ${active==='inbox'?'active':''}">${ic('chat')}<span>Inbox ao vivo</span><span class="badge">14</span></div>
+        <div class="nav-item ${active==='tickets'?'active':''}">${ic('ticket')}<span>Tickets</span><span class="badge">8</span></div>
+        <div class="nav-item ${active==='ai-queue'?'active':''}">${ic('brain')}<span>Fila da IA</span><span class="dot-ok"></span></div>
+      </nav>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Conhecimento</div>
+      <nav class="nav">
+        <div class="nav-item ${active==='kb'?'active':''}">${ic('book')}<span>Base de artigos</span></div>
+        <div class="nav-item ${active==='training'?'active':''}">${ic('sparkle')}<span>Treinar IA</span></div>
+      </nav>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Insights</div>
+      <nav class="nav">
+        <div class="nav-item ${active==='analytics'?'active':''}">${ic('bar')}<span>Analytics</span></div>
+        <div class="nav-item ${active==='team'?'active':''}">${ic('users')}<span>Equipe</span></div>
+      </nav>
+    </div>
+    <div class="side-bottom">
+      <div class="nav-item ${active==='settings'?'active':''}">${ic('cog')}<span>Configurações</span></div>
+      <div class="nav-item">${ic('plug')}<span>Integrações</span><span class="dot-ok"></span></div>
+    </div>
+  </aside>`;
+}
+
+// ============= LOGIN =============
+function loginA(){
+  return h`
+  <div class="login-wrap">
+    <div class="login-vis">
+      <div class="login-vis-inner">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="brand-dot" style="width:40px;height:40px;font-size:18px">A</div>
+          <div style="font-family:var(--font-display);font-weight:700;font-size:22px">ARIA</div>
+        </div>
+        <h2>Atendimento com IA que pensa como seu melhor agente.</h2>
+        <p>Tickets resolvidos automaticamente, com CoT transparente e escalada inteligente quando precisa de humanos.</p>
+      </div>
+      <div class="vis-card">
+        <div class="vc-title">${ic('sparkle')} IA resolveu esta semana</div>
+        <div class="vc-metric">3.284</div>
+        <div class="vc-sub">↑ 42% vs. semana anterior · CSAT 4.7</div>
+      </div>
+    </div>
+    <div class="login-form-wrap">
+      <form class="login-form" onsubmit="event.preventDefault()">
+        <div class="sm-brand">
+          <div class="brand-dot">A</div><span>ARIA</span>
+        </div>
+        <h1>Entrar na sua workspace</h1>
+        <p class="lead">Acesso exclusivo para agentes e gestores.</p>
+        <div class="field">
+          <label>E-mail corporativo</label>
+          <div class="input">${ic('mail')}<input type="email" value="marina@techcorp.com.br" placeholder="seu@empresa.com"></div>
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <div class="input">${ic('lock')}<input type="password" value="••••••••••" placeholder="Sua senha"><button type="button" class="tool-btn">${ic('eye')}</button></div>
+        </div>
+        <div class="field-row">
+          <label class="check"><input type="checkbox" checked> Manter conectado</label>
+          <a href="#" class="link">Esqueci a senha</a>
+        </div>
+        <button class="btn-primary btn-wide">Entrar ${ic('arrow-r')}</button>
+        <div class="divider">ou entre com</div>
+        <div class="sso">
+          <button class="sso-btn">${ic('google')} Google</button>
+          <button class="sso-btn">${ic('ms')} Microsoft</button>
+        </div>
+        <p class="login-foot">Ainda não tem acesso? <a href="#" class="link">Falar com o admin</a></p>
+      </form>
+    </div>
+  </div>`;
+}
+function loginB(){
+  return h`
+  <div class="login-centered">
+    <form class="login-card" onsubmit="event.preventDefault()">
+      <div class="sm-brand" style="justify-content:center;flex-direction:column;gap:14px;margin-bottom:28px">
+        <div class="brand-dot" style="width:56px;height:56px;font-size:24px;border-radius:16px">A</div>
+        <div style="font-family:var(--font-display);font-weight:700;font-size:22px">ARIA</div>
+      </div>
+      <h1 style="text-align:center">Bem-vinda de volta</h1>
+      <p class="lead" style="text-align:center">Entre para continuar atendendo com IA.</p>
+      <div class="field">
+        <div class="input">${ic('mail')}<input type="email" value="marina@techcorp.com.br" placeholder="E-mail"></div>
+      </div>
+      <div class="field">
+        <div class="input">${ic('lock')}<input type="password" value="••••••••••" placeholder="Senha"><button type="button" class="tool-btn">${ic('eye')}</button></div>
+      </div>
+      <div class="field-row">
+        <label class="check"><input type="checkbox" checked> Lembrar</label>
+        <a href="#" class="link">Esqueci</a>
+      </div>
+      <button class="btn-primary btn-wide">Entrar ${ic('arrow-r')}</button>
+      <div class="divider">ou SSO</div>
+      <div class="sso">
+        <button class="sso-btn">${ic('google')} Google</button>
+        <button class="sso-btn">${ic('ms')} Microsoft</button>
+      </div>
+      <p class="login-foot">Sem conta? <a href="#" class="link">Solicitar acesso</a></p>
+    </form>
+  </div>`;
+}
+
+// ============= CHAT / DASHBOARD =============
+function chatA(){
+  return h`
+  <div class="app three-col">
+    ${rail('chat')}
+    ${sidebar('inbox')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs">
+          <span>Inbox</span><span class="sep">/</span>
+          <span class="crumb-badge">${ic('phone')} WhatsApp</span>
+          <span class="sep">/</span>
+          <span class="curr">Ana Beatriz Souza</span>
+          <span class="pill ok" style="margin-left:8px"><span class="dot"></span>IA em execução</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="chip-btn">${ic('users')} Transferir</button>
+          <button class="chip-btn">${ic('file')} Criar ticket</button>
+          <button class="icon-btn">${ic('more')}</button>
+        </div>
+      </div>
+      <div class="chat-layout">
+        <div class="conv-scroll scroll">
+          <div class="conv-start">hoje, 14:02</div>
+
+          <div class="msg-group">
+            <div class="meta-row"><div class="avatar"></div>Ana Beatriz · cliente · 14:02</div>
+            <div class="bubble them">Oi! Meu pedido #BR-88421 era pra chegar ontem e ainda não saiu pra entrega.</div>
+          </div>
+
+          <div class="msg-group right">
+            <div class="meta-row">ARIA · 14:02</div>
+            <div class="cot" id="cotBox">
+              <div class="cot-head">${ic('brain')} Chain of Thought — raciocínio da IA</div>
+              <div class="cot-step"><div class="n">1</div><div><b>Intent:</b> status de pedido atrasado.</div></div>
+              <div class="cot-step"><div class="n">2</div><div><b>Lookup:</b> pedido #BR-88421 em trânsito, transportadora retida em CD-SP.</div></div>
+              <div class="cot-step"><div class="n">3</div><div><b>Ação:</b> gerar nova previsão + cupom R$15 (política atraso ≥24h).</div></div>
+              <div class="cot-step"><div class="n">4</div><div><b>Confiança:</b> 94% · resposta automática aprovada.</div></div>
+            </div>
+            <div class="bubble ai">Olá Ana! Localizei seu pedido <b>#BR-88421</b>. Ele ficou retido no nosso CD em SP, mas já está a caminho. Nova previsão: <b>amanhã, 20/jun entre 9h–12h</b>. Pelo atraso, adicionei um cupom de <b>R$15</b> na sua conta. Posso ajudar em mais algo?</div>
+          </div>
+
+          <div class="msg-group">
+            <div class="meta-row"><div class="avatar"></div>Ana Beatriz · 14:05</div>
+            <div class="bubble them">Perfeito, obrigada! Só quero confirmar se o cupom vale pra próxima compra.</div>
+          </div>
+
+          <div class="msg-group right">
+            <div class="meta-row">ARIA · agora</div>
+            <div class="bubble ai">Sim! Válido por 30 dias em qualquer produto do site, sem valor mínimo. Código: <b>DESCULPA15</b>. 💜</div>
+          </div>
+        </div>
+
+        <aside class="ctx">
+          <div class="ctx-head">
+            <div class="ctx-avatar"></div>
+            <div class="ctx-name">Ana Beatriz Souza</div>
+            <div class="ctx-mail">ana.souza@gmail.com</div>
+            <div style="margin-top:10px;display:flex;gap:6px;justify-content:center">
+              <span class="pill ok"><span class="dot"></span>VIP</span>
+              <span class="pill ghost">5 pedidos</span>
+            </div>
+          </div>
+          <div class="ctx-tabs">
+            <div class="ctx-tab active">Perfil</div>
+            <div class="ctx-tab">Histórico</div>
+            <div class="ctx-tab">Notas</div>
+          </div>
+          <div class="ctx-body">
+            <div class="ctx-card">
+              <h5>${ic('pin')} Contato</h5>
+              <div class="ctx-row"><span class="k">Telefone</span><span>+55 11 9 8876-5432</span></div>
+              <div class="ctx-row"><span class="k">E-mail</span><span style="overflow:hidden;text-overflow:ellipsis">ana.souza@gmail.com</span></div>
+              <div class="ctx-row"><span class="k">Cidade</span><span>São Paulo / SP</span></div>
+            </div>
+            <div class="ctx-card">
+              <h5>${ic('ticket')} Pedido atual</h5>
+              <div class="ctx-row"><span class="k">Número</span><span class="mono" style="font-family:var(--font-mono)">#BR-88421</span></div>
+              <div class="ctx-row"><span class="k">Status</span><span class="pill warn"><span class="dot"></span>em trânsito</span></div>
+              <div class="ctx-row"><span class="k">Valor</span><span>R$ 348,90</span></div>
+            </div>
+            <div class="ctx-card">
+              <h5>${ic('sparkle')} Sugestões da IA</h5>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <button class="quick-chip" style="justify-content:flex-start">Oferecer frete grátis próximo pedido</button>
+                <button class="quick-chip" style="justify-content:flex-start">Enviar pesquisa CSAT ao finalizar</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+      <div class="composer">
+        <div class="quick-chips">
+          <button class="quick-chip">${ic('zap')} Resposta rápida</button>
+          <button class="quick-chip">${ic('file')} Inserir artigo KB</button>
+          <button class="quick-chip">${ic('ticket')} Criar ticket</button>
+        </div>
+        <div class="hint-bar">${ic('sparkle')} Use <code>/ia</code> para sugerir resposta · <code>@agente</code> para mencionar alguém da equipe</div>
+        <div class="input-area">
+          <div class="input-placeholder">Escreva uma mensagem ou deixe a ARIA continuar…</div>
+          <div class="input-tools">
+            <button class="tool-btn">${ic('clip')}</button>
+            <button class="tool-btn">${ic('smile')}</button>
+            <button class="tool-btn">${ic('mic')}</button>
+            <button class="chip-btn" style="margin-left:6px">${ic('brain')} Sugerir com IA</button>
+            <button class="send-btn">Enviar ${ic('send')}</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+function chatB(){
+  // Dashboard operacional com KPIs + lista de conversas (visão de gestão)
+  const convs = [
+    {n:'Ana B. Souza', p:'pedido atrasado #BR-88421', pill:'ok', st:'IA · 94%', t:'agora', ch:'whatsapp'},
+    {n:'Rafael Nunes', p:'cancelar assinatura Gold', pill:'warn', st:'Híbrido', t:'2m', ch:'whatsapp'},
+    {n:'Camila Ferreira', p:'produto chegou com defeito', pill:'bad', st:'Humano', t:'5m', ch:'email'},
+    {n:'João P. Lima', p:'como rastrear pedido?', pill:'ok', st:'IA · 98%', t:'7m', ch:'chat'},
+    {n:'Beatriz Rocha', p:'3 tentativas de pagamento', pill:'warn', st:'Híbrido', t:'11m', ch:'whatsapp'},
+    {n:'Eduardo Costa', p:'pedido chegou hoje, tudo ok', pill:'ok', st:'Finalizado', t:'18m', ch:'whatsapp'},
+    {n:'Laura Mendes', p:'integração API parou', pill:'bad', st:'Escalado', t:'22m', ch:'email'}
+  ];
+  return h`
+  <div class="app">
+    ${rail('chat')}
+    ${sidebar('inbox')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs">
+          <span>Dashboard</span><span class="sep">/</span>
+          <span class="curr">Operação ao vivo</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="chip-btn">${ic('filter')} Hoje · 00h–18h</button>
+          <button class="icon-btn">${ic('bell')}<span class="n">3</span></button>
+          <button class="btn-primary">${ic('plus')} Nova conversa</button>
+        </div>
+      </div>
+
+      <div class="promo">
+        <div class="promo-icon">${ic('sparkle')}</div>
+        <div class="promo-text">ARIA está resolvendo <b>73% dos tickets</b> sozinha hoje · média resposta 11s</div>
+        <button class="promo-btn">Ver relatório ${ic('arrow-r')}</button>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Conversas ativas</div><div class="kpi-value">47</div><div class="kpi-delta up">↑ 12 vs. ontem</div></div>
+        <div class="kpi"><div class="kpi-label">IA resolveu (24h)</div><div class="kpi-value">1.284</div><div class="kpi-delta up">↑ 8%</div></div>
+        <div class="kpi"><div class="kpi-label">Tempo 1ª resposta</div><div class="kpi-value">11s</div><div class="kpi-delta up">↓ 4s</div></div>
+        <div class="kpi"><div class="kpi-label">CSAT (24h)</div><div class="kpi-value">4.7<span style="font-size:16px;color:var(--fg-3)">/5</span></div><div class="kpi-delta up">↑ 0.2</div></div>
+      </div>
+
+      <div class="scroll" style="padding:18px 20px 24px">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-1)">
+            <h4 style="margin:0">Conversas ativas</h4>
+            <span class="pill v"><span class="dot"></span>ao vivo</span>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button class="chip-btn">${ic('filter')} Todas</button>
+              <button class="chip-btn">${ic('search')} Buscar</button>
+            </div>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Cliente</th><th>Canal</th><th>Última mensagem</th><th>Estado</th><th style="text-align:right">Ação</th></tr></thead>
+            <tbody>
+              ${convs.map(c=>`
+                <tr>
+                  <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:32px;height:32px"></div><div><div style="font-weight:500;color:#fff">${c.n}</div><div class="tiny">${c.t} atrás</div></div></div></td>
+                  <td><span class="pill ghost">${c.ch}</span></td>
+                  <td style="color:var(--fg-2);max-width:280px" class="truncate">${c.p}</td>
+                  <td><span class="pill ${c.pill}"><span class="dot"></span>${c.st}</span></td>
+                  <td style="text-align:right"><button class="chip-btn">Abrir ${ic('arrow-r')}</button></td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+// ============= TICKETS =============
+function ticketsA(){
+  const rows = [
+    {id:'ARA-4821', t:'Produto chegou com defeito — solicitação de troca', c:'Camila Ferreira', ch:'whatsapp', pr:'bad', prL:'alta', st:'Aberto', ag:'IA + Marina', up:'2m'},
+    {id:'ARA-4820', t:'3 tentativas de pagamento recusadas no app', c:'Beatriz Rocha', ch:'whatsapp', pr:'warn', prL:'média', st:'Em progresso', ag:'Híbrido', up:'14m'},
+    {id:'ARA-4819', t:'Integração API parou de responder às 13h', c:'Laura Mendes', ch:'email', pr:'bad', prL:'alta', st:'Escalado', ag:'Tech Team', up:'22m'},
+    {id:'ARA-4818', t:'Como rastrear pedido pelo app?', c:'João P. Lima', ch:'chat', pr:'ok', prL:'baixa', st:'Resolvido', ag:'ARIA', up:'1h'},
+    {id:'ARA-4817', t:'Cancelar assinatura Gold e receber reembolso', c:'Rafael Nunes', ch:'whatsapp', pr:'warn', prL:'média', st:'Em progresso', ag:'Pedro S.', up:'2h'},
+    {id:'ARA-4816', t:'Segunda via de nota fiscal — pedido #BR-88100', c:'Daniela Xavier', ch:'email', pr:'ok', prL:'baixa', st:'Aguardando cliente', ag:'ARIA', up:'3h'},
+    {id:'ARA-4815', t:'Desconto prometido não aplicou no carrinho', c:'Fernanda Dias', ch:'whatsapp', pr:'warn', prL:'média', st:'Resolvido', ag:'ARIA', up:'4h'},
+  ];
+  return h`
+  <div class="app">
+    ${rail('tickets')}
+    ${sidebar('tickets')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Tickets</span><span class="sep">/</span><span class="curr">Todos os tickets</span></div>
+        <div class="topbar-actions">
+          <button class="chip-btn">${ic('filter')} Filtros · 2</button>
+          <button class="chip-btn">${ic('search')} Buscar</button>
+          <button class="btn-primary">${ic('plus')} Novo ticket</button>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Abertos</div><div class="kpi-value">28</div><div class="kpi-delta down">↑ 4 novos hoje</div></div>
+        <div class="kpi"><div class="kpi-label">Em progresso</div><div class="kpi-value">12</div><div class="kpi-delta up">↓ 2</div></div>
+        <div class="kpi"><div class="kpi-label">Resolvidos (24h)</div><div class="kpi-value">84</div><div class="kpi-delta up">↑ 19%</div></div>
+        <div class="kpi"><div class="kpi-label">SLA em risco</div><div class="kpi-value" style="color:var(--bad)">3</div><div class="kpi-delta down">vencem em 2h</div></div>
+      </div>
+      <div class="scroll" style="padding:18px 20px 24px">
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="tbl">
+            <thead><tr><th style="width:120px">ID</th><th>Assunto</th><th>Cliente</th><th>Canal</th><th>Prioridade</th><th>Status</th><th>Responsável</th><th>Atualizado</th></tr></thead>
+            <tbody>
+              ${rows.map(r=>`<tr>
+                <td class="mono" style="font-family:var(--font-mono);color:var(--fg-3)">${r.id}</td>
+                <td><div style="font-weight:500;color:#fff" class="truncate" style="max-width:380px">${r.t}</div></td>
+                <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:26px;height:26px"></div>${r.c}</div></td>
+                <td><span class="pill ghost">${r.ch}</span></td>
+                <td><span class="pill ${r.pr}"><span class="dot"></span>${r.prL}</span></td>
+                <td>${r.st==='Resolvido'?`<span class="pill ok"><span class="dot"></span>${r.st}</span>`:r.st==='Escalado'?`<span class="pill bad"><span class="dot"></span>${r.st}</span>`:`<span class="pill v"><span class="dot"></span>${r.st}</span>`}</td>
+                <td>${r.ag.includes('ARIA')||r.ag.includes('IA')?`<span style="display:inline-flex;align-items:center;gap:6px"><span class="brand-dot" style="width:20px;height:20px;font-size:10px;border-radius:6px">A</span>${r.ag}</span>`:r.ag}</td>
+                <td class="tiny">${r.up} atrás</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+function ticketsB(){
+  const cols = [
+    {k:'aberto', title:'Aberto', count:8, tint:'v', items:[
+      {id:'ARA-4821', t:'Produto chegou com defeito — solicitação de troca', pr:'bad', ag:'IA', ch:'whatsapp'},
+      {id:'ARA-4824', t:'Cobrança duplicada no cartão Visa final 0231', pr:'warn', ag:'IA', ch:'email'},
+      {id:'ARA-4825', t:'Não consigo resetar senha, link expirado', pr:'ok', ag:'IA', ch:'chat'},
+    ]},
+    {k:'prog', title:'Em progresso', count:5, tint:'warn', items:[
+      {id:'ARA-4820', t:'3 tentativas de pagamento recusadas no app', pr:'warn', ag:'Híbrido', ch:'whatsapp'},
+      {id:'ARA-4817', t:'Cancelar assinatura Gold e reembolso integral', pr:'warn', ag:'Pedro S.', ch:'whatsapp'},
+    ]},
+    {k:'wait', title:'Aguardando cliente', count:3, tint:'ghost', items:[
+      {id:'ARA-4816', t:'Segunda via de nota fiscal — pedido #BR-88100', pr:'ok', ag:'IA', ch:'email'},
+      {id:'ARA-4812', t:'Enviar comprovante de endereço para validação', pr:'ok', ag:'IA', ch:'whatsapp'},
+    ]},
+    {k:'done', title:'Resolvido hoje', count:84, tint:'ok', items:[
+      {id:'ARA-4818', t:'Como rastrear pedido pelo app?', pr:'ok', ag:'IA', ch:'chat'},
+      {id:'ARA-4815', t:'Desconto prometido não aplicou no carrinho', pr:'warn', ag:'IA', ch:'whatsapp'},
+      {id:'ARA-4814', t:'Trocar tamanho de peça — pedido #BR-87921', pr:'ok', ag:'IA', ch:'whatsapp'},
+    ]}
+  ];
+  return h`
+  <div class="app">
+    ${rail('tickets')}
+    ${sidebar('tickets')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Tickets</span><span class="sep">/</span><span class="curr">Quadro kanban</span></div>
+        <div class="topbar-actions">
+          <button class="chip-btn">${ic('users')} Todos os agentes</button>
+          <button class="chip-btn">${ic('filter')} Filtros</button>
+          <button class="btn-primary">${ic('plus')} Novo ticket</button>
+        </div>
+      </div>
+      <div class="scroll">
+        <div class="kanban">
+          ${cols.map(col=>`
+            <div class="kcol">
+              <div class="kcol-head">
+                <span class="pill ${col.tint}"><span class="dot"></span></span>
+                <h5>${col.title}</h5>
+                <span class="kcol-count">${col.count}</span>
+                <button class="tool-btn">${ic('more')}</button>
+              </div>
+              <div class="kcol-body">
+                ${col.items.map(it=>`
+                  <div class="kticket">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                      <span class="kticket-id">${it.id}</span>
+                      <span class="pill ${it.pr}" style="margin-left:auto"><span class="dot"></span></span>
+                    </div>
+                    <div class="kticket-title">${it.t}</div>
+                    <div class="kticket-foot">
+                      <span class="pill ghost">${it.ch}</span>
+                      <span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--fg-2)">
+                        ${it.ag==='IA'?`<span class="brand-dot" style="width:18px;height:18px;font-size:9px;border-radius:5px">A</span>`:`<div class="avatar" style="width:20px;height:20px"></div>`}
+                        ${it.ag}
+                      </span>
+                    </div>
+                  </div>
+                `).join('')}
+                <button class="quick-chip" style="justify-content:center;border-style:dashed">${ic('plus')} adicionar</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+// ============= KB =============
+function kbA(){
+  const cats = [
+    {n:'Todos', ct:124, active:true},
+    {n:'Pedidos & Entrega', ct:38},
+    {n:'Pagamento', ct:21},
+    {n:'Assinaturas', ct:18},
+    {n:'Produtos', ct:29},
+    {n:'Devolução', ct:12},
+    {n:'API & Integrações', ct:6}
+  ];
+  const arts = [
+    {t:'Como rastrear meu pedido pelo app', cat:'Pedidos', used:'342x', updated:'2d'},
+    {t:'Política de devolução em 30 dias', cat:'Devolução', used:'218x', updated:'1sem'},
+    {t:'Tentativas de pagamento recusadas — causas comuns', cat:'Pagamento', used:'194x', updated:'4d'},
+    {t:'Trocar plano da assinatura Gold para Premium', cat:'Assinatura', used:'121x', updated:'3d'},
+    {t:'Frete grátis: quais regiões e valor mínimo', cat:'Pedidos', used:'112x', updated:'1d'},
+    {t:'Como emitir segunda via de nota fiscal', cat:'Pedidos', used:'88x', updated:'6d'},
+    {t:'Código de cupom não aplica no carrinho', cat:'Pagamento', used:'76x', updated:'2d'},
+    {t:'Autenticação OAuth 2.0 na API pública', cat:'API', used:'54x', updated:'12d'}
+  ];
+  return h`
+  <div class="app">
+    ${rail('kb')}
+    ${sidebar('kb')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Conhecimento</span><span class="sep">/</span><span class="curr">Base de artigos</span></div>
+        <div class="topbar-actions">
+          <div class="input" style="height:36px;width:280px"><span style="color:var(--fg-3)">${ic('search')}</span><input placeholder="Buscar artigos, tags, autores…"></div>
+          <button class="btn-primary">${ic('plus')} Novo artigo</button>
+        </div>
+      </div>
+      <div style="padding:14px 20px 0;display:flex;gap:8px;flex-wrap:wrap">
+        ${cats.map(c=>`<button class="quick-chip ${c.active?'':''}" style="${c.active?'background:var(--v-900);color:var(--v-200);border-color:var(--v-700)':''}">${c.n} <span style="opacity:.6">${c.ct}</span></button>`).join('')}
+      </div>
+      <div class="scroll">
+        <div class="kb-grid">
+          ${arts.map(a=>`
+            <div class="kb-card">
+              <div class="kb-icon"></div>
+              <h5>${a.t}</h5>
+              <div class="kb-meta">${ic('sparkle')} usado ${a.used} pela IA</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:auto">
+                <span class="pill v">${a.cat}</span>
+                <span class="tiny" style="margin-left:auto">atualizado há ${a.updated}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+function kbB(){
+  // Ingestão / treinamento da IA
+  const sources = [
+    {n:'Manual do Produto v3.pdf', s:'PDF · 12MB', status:'ok', pgs:'142 páginas', ingested:'2h', chunks:'384'},
+    {n:'FAQ — site institucional', s:'URL · techcorp.com/faq', status:'ok', pgs:'21 páginas', ingested:'1d', chunks:'98'},
+    {n:'Política de devolução 2026', s:'DOCX · 340KB', status:'ok', pgs:'8 páginas', ingested:'3d', chunks:'42'},
+    {n:'Notion — Playbook SAC', s:'Notion · sync diário', status:'processing', pgs:'—', ingested:'agora', chunks:'—'},
+    {n:'Transcrições WhatsApp (jun)', s:'API · 2.3k convos', status:'warn', pgs:'—', ingested:'6h', chunks:'1.204'}
+  ];
+  return h`
+  <div class="app">
+    ${rail('kb')}
+    ${sidebar('training')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Conhecimento</span><span class="sep">/</span><span class="curr">Treinar IA</span>
+          <span class="pill v" style="margin-left:8px"><span class="dot"></span>487 chunks indexados</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="chip-btn">${ic('brain')} Re-treinar agora</button>
+          <button class="btn-primary">${ic('plus')} Nova fonte</button>
+        </div>
+      </div>
+
+      <div class="upload-zone">
+        ${ic('upload')}
+        <h4>Arraste arquivos ou conecte uma fonte</h4>
+        <p>PDF · DOCX · TXT · URL · Notion · Confluence · Intercom · Zendesk</p>
+        <div style="display:flex;gap:10px;margin-top:6px">
+          <button class="chip-btn">${ic('file')} Enviar arquivos</button>
+          <button class="chip-btn">${ic('plug')} Conectar fonte</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Fontes ativas</div><div class="kpi-value">12</div><div class="kpi-delta up">5 conectadas</div></div>
+        <div class="kpi"><div class="kpi-label">Chunks no índice</div><div class="kpi-value">1.874</div><div class="kpi-delta up">↑ 384</div></div>
+        <div class="kpi"><div class="kpi-label">Cobertura de intents</div><div class="kpi-value">92%</div><div class="kpi-delta up">↑ 3%</div></div>
+        <div class="kpi"><div class="kpi-label">Gaps detectados</div><div class="kpi-value" style="color:var(--warn)">7</div><div class="kpi-delta down">revisar</div></div>
+      </div>
+
+      <div class="scroll" style="padding:18px 20px 24px">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line-1)">
+            <h4 style="margin:0">Fontes conectadas</h4>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button class="chip-btn">${ic('filter')} Todas</button>
+            </div>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Fonte</th><th>Tipo</th><th>Tamanho</th><th>Chunks</th><th>Status</th><th>Indexado</th><th></th></tr></thead>
+            <tbody>
+              ${sources.map(s=>`<tr>
+                <td><div style="display:flex;align-items:center;gap:10px"><div class="kb-icon" style="width:28px;height:32px"></div><div style="font-weight:500;color:#fff">${s.n}</div></div></td>
+                <td class="tiny">${s.s}</td>
+                <td>${s.pgs}</td>
+                <td class="mono" style="font-family:var(--font-mono)">${s.chunks}</td>
+                <td>${s.status==='ok'?`<span class="pill ok"><span class="dot"></span>sincronizado</span>`:s.status==='processing'?`<span class="pill v"><span class="dot"></span>processando…</span>`:`<span class="pill warn"><span class="dot"></span>requer revisão</span>`}</td>
+                <td class="tiny">há ${s.ingested}</td>
+                <td style="text-align:right"><button class="icon-btn">${ic('more')}</button></td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+// ============= SETTINGS =============
+function settingsA(){
+  return h`
+  <div class="app">
+    ${rail('settings')}
+    ${sidebar('settings')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Configurações</span><span class="sep">/</span><span class="curr">Comportamento da IA</span></div>
+        <div class="topbar-actions">
+          <button class="chip-btn">Descartar</button>
+          <button class="btn-primary">Salvar alterações</button>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <nav class="settings-nav">
+          <div class="nav-label">Workspace</div>
+          <div class="nav-item">${ic('building')}Organização</div>
+          <div class="nav-item">${ic('users')}Equipe & papéis</div>
+          <div class="nav-item">${ic('shield')}Segurança</div>
+          <div class="nav-label">Atendimento</div>
+          <div class="nav-item active">${ic('brain')}Comportamento da IA</div>
+          <div class="nav-item">${ic('chat')}Canais</div>
+          <div class="nav-item">${ic('ticket')}SLA & prioridades</div>
+          <div class="nav-item">${ic('zap')}Respostas rápidas</div>
+          <div class="nav-label">Integração</div>
+          <div class="nav-item">${ic('plug')}Integrações</div>
+          <div class="nav-item">${ic('file')}API & webhooks</div>
+          <div class="nav-label">Outros</div>
+          <div class="nav-item">${ic('palette')}Aparência</div>
+          <div class="nav-item">${ic('bell')}Notificações</div>
+        </nav>
+        <div class="settings-body scroll">
+          <h2>Comportamento da IA</h2>
+          <p class="lead">Como a ARIA responde, quando escala e qual tom usa com seus clientes.</p>
+
+          <div class="settings-section">
+            <h3>${ic('brain')} Modo de operação</h3>
+            <div class="row-def">
+              <div><div class="k">Autonomia da IA</div><div class="d">Quando a IA responde sozinha vs. pede aprovação do agente.</div></div>
+              <div class="val">
+                <div class="select-box">Autônomo (alta confiança) ${ic('chev-d')}</div>
+              </div>
+            </div>
+            <div class="row-def">
+              <div><div class="k">Confiança mínima para responder</div><div class="d">Abaixo disso, escala para humano. Atual: <b>85%</b></div></div>
+              <div class="val"><div class="slider"></div></div>
+            </div>
+            <div class="row-def">
+              <div><div class="k">Mostrar CoT (Chain of Thought)</div><div class="d">Exibe o raciocínio da IA para o agente humano revisar.</div></div>
+              <div class="val"><span class="toggle on"></span></div>
+            </div>
+            <div class="row-def">
+              <div><div class="k">Aprovação humana em ações críticas</div><div class="d">Reembolso, cancelamento, alteração de pedido.</div></div>
+              <div class="val"><span class="toggle on"></span></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>${ic('smile')} Voz & tom</h3>
+            <div class="row-def">
+              <div><div class="k">Tom padrão</div><div class="d">Como a IA escreve suas respostas.</div></div>
+              <div class="val"><div class="select-box">Amigável & direto ${ic('chev-d')}</div></div>
+            </div>
+            <div class="row-def">
+              <div><div class="k">Usar emojis</div><div class="d">Máximo 1 por mensagem, contextual.</div></div>
+              <div class="val"><span class="toggle on"></span></div>
+            </div>
+            <div class="row-def">
+              <div><div class="k">Idioma primário</div><div class="d">IA detecta e adapta automaticamente.</div></div>
+              <div class="val"><div class="select-box">🇧🇷 Português (BR) ${ic('chev-d')}</div></div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3>${ic('shield')} Guardrails & limites</h3>
+            <div class="row-def">
+              <div><div class="k">Bloquear tópicos sensíveis</div><div class="d">Política, religião, comparação com concorrentes.</div></div>
+              <div class="val"><span class="toggle on"></span></div>
+            </div>
+            <div class="row-def">
+              <div><div class="k">Não inventar informações</div><div class="d">Se não souber, escalar em vez de criar.</div></div>
+              <div class="val"><span class="toggle on"></span></div>
+            </div>
+            <div class="row-def">
+              <div><div class="k">Máximo de turnos automáticos</div><div class="d">Escala após <b>8 mensagens</b> sem resolver.</div></div>
+              <div class="val"><div class="slider" style="--p:65%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+function settingsB(){
+  // Integrações
+  const ints = [
+    {n:'WhatsApp Business',d:'Receber e responder via número oficial',status:'on',ic:'phone'},
+    {n:'Shopify',d:'Lookup de pedidos, status, reembolsos',status:'on',ic:'building'},
+    {n:'Stripe',d:'Informações de pagamento e assinaturas',status:'on',ic:'lock'},
+    {n:'Notion',d:'Base de conhecimento sincronizada',status:'on',ic:'book'},
+    {n:'Slack',d:'Notificar canal #atendimento de escaladas',status:'off',ic:'chat'},
+    {n:'HubSpot',d:'Sincronizar contatos e histórico CRM',status:'off',ic:'users'},
+    {n:'Zendesk',d:'Migrar tickets antigos',status:'off',ic:'ticket'},
+    {n:'Zapier',d:'8.000+ automações',status:'off',ic:'zap'}
+  ];
+  return h`
+  <div class="app">
+    ${rail('settings')}
+    ${sidebar('settings')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Configurações</span><span class="sep">/</span><span class="curr">Integrações</span></div>
+        <div class="topbar-actions">
+          <button class="chip-btn">${ic('file')} API docs</button>
+          <button class="btn-primary">${ic('plus')} Nova integração</button>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <nav class="settings-nav">
+          <div class="nav-label">Workspace</div>
+          <div class="nav-item">${ic('building')}Organização</div>
+          <div class="nav-item">${ic('users')}Equipe & papéis</div>
+          <div class="nav-item">${ic('shield')}Segurança</div>
+          <div class="nav-label">Atendimento</div>
+          <div class="nav-item">${ic('brain')}Comportamento da IA</div>
+          <div class="nav-item">${ic('chat')}Canais</div>
+          <div class="nav-item">${ic('ticket')}SLA & prioridades</div>
+          <div class="nav-label">Integração</div>
+          <div class="nav-item active">${ic('plug')}Integrações</div>
+          <div class="nav-item">${ic('file')}API & webhooks</div>
+          <div class="nav-label">Outros</div>
+          <div class="nav-item">${ic('palette')}Aparência</div>
+          <div class="nav-item">${ic('bell')}Notificações</div>
+        </nav>
+        <div class="settings-body scroll">
+          <h2>Integrações</h2>
+          <p class="lead">Conecte as ferramentas que sua equipe já usa. A IA consulta esses dados para responder com contexto real.</p>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+            ${ints.map(i=>`
+              <div class="card ${i.status==='on'?'elev':''}" style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="width:42px;height:42px;border-radius:10px;background:var(--bg-3);border:1px solid var(--line-2);display:grid;place-items:center;color:var(--v-400)">${ic(i.ic)}</div>
+                  <div style="flex:1">
+                    <h4>${i.n}</h4>
+                    <div class="sub">${i.d}</div>
+                  </div>
+                  ${i.status==='on'?`<span class="pill ok"><span class="dot"></span>ativo</span>`:''}
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <span class="toggle ${i.status==='on'?'on':''}"></span>
+                  <span class="tiny">${i.status==='on'?'conectado':'desativado'}</span>
+                  <button class="chip-btn" style="margin-left:auto">${i.status==='on'?'Configurar':'Conectar'} ${ic('arrow-r')}</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="settings-section" style="margin-top:28px">
+            <h3>${ic('file')} Webhooks customizados</h3>
+            <div class="card" style="padding:14px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <code style="font-family:var(--font-mono);font-size:12px;color:var(--v-200);background:var(--bg-3);padding:8px 12px;border-radius:8px;flex:1">https://api.techcorp.com.br/hooks/aria/ticket.created</code>
+                <span class="pill ok"><span class="dot"></span>200 OK</span>
+                <button class="chip-btn">Editar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+// ============= ANALYTICS =============
+function analyticsA(){
+  const bars = [
+    {l:'seg',a:42,b:18,c:12},{l:'ter',a:55,b:22,c:15},{l:'qua',a:48,b:20,c:14},
+    {l:'qui',a:62,b:25,c:18},{l:'sex',a:70,b:28,c:20},{l:'sáb',a:38,b:14,c:10},{l:'dom',a:32,b:12,c:8}
+  ];
+  const maxBar = 100;
+  const linePoints = [40,55,48,62,78,72,85,90,84,92,88,95];
+  const lineW=560, lineH=140;
+  const path = linePoints.map((v,i)=>{
+    const x = (i/(linePoints.length-1))*lineW;
+    const y = lineH - (v/100)*lineH;
+    return `${i===0?'M':'L'} ${x} ${y}`;
+  }).join(' ');
+  const areaPath = path + ` L ${lineW} ${lineH} L 0 ${lineH} Z`;
+
+  return h`
+  <div class="app">
+    ${rail('analytics')}
+    ${sidebar('analytics')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Analytics</span><span class="sep">/</span><span class="curr">Visão geral</span></div>
+        <div class="topbar-actions">
+          <div class="select-box">${ic('clock')} Últimos 30 dias ${ic('chev-d')}</div>
+          <button class="chip-btn">${ic('file')} Exportar</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Tickets resolvidos</div><div class="kpi-value">12.384</div><div class="kpi-delta up">↑ 18% vs. mês anterior</div></div>
+        <div class="kpi"><div class="kpi-label">% Auto-resolução IA</div><div class="kpi-value">73%</div><div class="kpi-delta up">↑ 6 pp</div></div>
+        <div class="kpi"><div class="kpi-label">TMR médio</div><div class="kpi-value">14s</div><div class="kpi-delta up">↓ 8s</div></div>
+        <div class="kpi"><div class="kpi-label">CSAT</div><div class="kpi-value">4.7<span style="font-size:16px;color:var(--fg-3)">/5</span></div><div class="kpi-delta up">↑ 0.3</div></div>
+      </div>
+
+      <div class="scroll" style="padding:18px 20px 24px;display:grid;grid-template-columns:2fr 1fr;gap:14px">
+        <div class="chart-card">
+          <div class="chart-head">
+            <h4>Volume diário por canal</h4>
+            <div class="lgnd"><span><i class="c1"></i>WhatsApp</span><span><i class="c2"></i>Email</span><span><i class="c3"></i>Chat</span></div>
+            <span class="pill ghost">últimos 7 dias</span>
+          </div>
+          <div class="bars">
+            ${bars.map(b=>`
+              <div class="col">
+                <div class="bg">
+                  <div class="seg c" style="height:${b.c/maxBar*100}%"></div>
+                  <div class="seg b" style="height:${b.b/maxBar*100}%"></div>
+                  <div class="seg a" style="height:${b.a/maxBar*100}%"></div>
+                </div>
+                <div class="label">${b.l}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="chart-card" style="align-items:center;text-align:center">
+          <div class="chart-head" style="width:100%"><h4>Estado das conversas</h4></div>
+          <div style="position:relative;margin:8px 0">
+            <div class="donut"></div>
+            <div class="donut-center">
+              <div>
+                <div class="v">73%</div>
+                <div class="l">IA</div>
+              </div>
+            </div>
+          </div>
+          <div class="lgnd" style="justify-content:center">
+            <span><i class="c1"></i>IA (73%)</span>
+            <span><i class="c2"></i>Híbrido (20%)</span>
+            <span><i class="c3"></i>Humano (12%)</span>
+            <span><i class="c4"></i>Escalado (6%)</span>
+          </div>
+        </div>
+
+        <div class="chart-card" style="grid-column:1 / -1">
+          <div class="chart-head">
+            <h4>Taxa de auto-resolução da IA</h4>
+            <span class="pill ok"><span class="dot"></span>tendência positiva</span>
+            <span class="pill ghost" style="margin-left:auto">últimos 12 semanas</span>
+          </div>
+          <div class="line-chart">
+            <svg viewBox="0 0 ${lineW} ${lineH}" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="lineGrad" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#6e46ff" stop-opacity=".45"/>
+                  <stop offset="100%" stop-color="#6e46ff" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line x1="0" x2="${lineW}" y1="35" y2="35" class="gridline" stroke-dasharray="4 4"/>
+              <line x1="0" x2="${lineW}" y1="70" y2="70" class="gridline" stroke-dasharray="4 4"/>
+              <line x1="0" x2="${lineW}" y1="105" y2="105" class="gridline" stroke-dasharray="4 4"/>
+              <path d="${areaPath}" fill="url(#lineGrad)"/>
+              <path d="${path}" fill="none" stroke="#8a6bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              ${linePoints.map((v,i)=>{
+                const x = (i/(linePoints.length-1))*lineW;
+                const y = lineH - (v/100)*lineH;
+                return `<circle cx="${x}" cy="${y}" r="3.5" fill="#0c0a13" stroke="#8a6bff" stroke-width="2"/>`;
+              }).join('')}
+            </svg>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+function analyticsB(){
+  // Intent bubbles + insights acionáveis
+  const bubs = [
+    {l:'Status pedido', n:'2.841', x:20, y:38, size:130, c:'#6e46ff'},
+    {l:'Cobrança', n:'1.204', x:58, y:25, size:92, c:'#9a6bff'},
+    {l:'Devolução', n:'892', x:78, y:55, size:78, c:'#5cc4ff'},
+    {l:'Cupom', n:'612', x:12, y:70, size:68, c:'#b983ff'},
+    {l:'Técnico', n:'488', x:62, y:75, size:62, c:'#4a26c9'},
+    {l:'Cadastro', n:'421', x:42, y:60, size:60, c:'#c6b8ff'},
+    {l:'Entrega', n:'302', x:86, y:30, size:52, c:'#8a6bff'},
+    {l:'Assinatura', n:'245', x:32, y:20, size:48, c:'#6e46ff'}
+  ];
+  const gaps = [
+    {t:'Cupom não aplica em marketplace', v:'52 menções', p:'bad', sug:'criar artigo · prioridade alta'},
+    {t:'Reembolso de frete expresso', v:'38 menções', p:'warn', sug:'esclarecer política'},
+    {t:'App trava ao adicionar cartão', v:'29 menções', p:'bad', sug:'escalar para produto'},
+    {t:'Prazo de troca produto grande', v:'24 menções', p:'warn', sug:'ajustar resposta padrão'}
+  ];
+  return h`
+  <div class="app">
+    ${rail('analytics')}
+    ${sidebar('analytics')}
+    <section class="main">
+      <div class="topbar">
+        <div class="crumbs"><span>Analytics</span><span class="sep">/</span><span class="curr">Intenções & gaps</span>
+          <span class="pill v" style="margin-left:8px">${ic('sparkle')} detectado por IA</span>
+        </div>
+        <div class="topbar-actions">
+          <div class="select-box">${ic('clock')} Últimos 30 dias ${ic('chev-d')}</div>
+          <button class="btn-primary">${ic('sparkle')} Preencher gaps</button>
+        </div>
+      </div>
+
+      <div class="scroll" style="padding:18px 20px 24px;display:grid;grid-template-columns:1fr 380px;gap:14px">
+        <div class="chart-card">
+          <div class="chart-head">
+            <h4>Clusters de intenção dos clientes</h4>
+            <span class="pill ghost" style="margin-left:auto">7.0k mensagens analisadas</span>
+          </div>
+          <div class="bubble-cluster">
+            ${bubs.map(b=>`
+              <div class="bub" style="left:${b.x}%;top:${b.y}%;width:${b.size}px;height:${b.size}px;background:radial-gradient(circle at 30% 30%,${b.c}DD,${b.c}88);transform:translate(-50%,-50%)">
+                <div>
+                  <div style="font-weight:600;font-size:${b.size>80?'13px':'11px'}">${b.l}</div>
+                  <small>${b.n}</small>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="display:flex;gap:18px;font-size:11px;color:var(--fg-3);padding:4px 6px">
+            <span>Tamanho = volume · Cor = categoria · Clique num cluster para detalhar</span>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-head">
+            <h4>${ic('sparkle')} Gaps acionáveis</h4>
+          </div>
+          <p class="sub" style="margin:-6px 0 6px">Tópicos onde a IA escala ou inventa. Preencher aumenta auto-resolução.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            ${gaps.map(g=>`
+              <div class="card" style="padding:12px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                  <span class="pill ${g.p}"><span class="dot"></span></span>
+                  <span style="font-weight:500;color:#fff;font-size:13px;flex:1">${g.t}</span>
+                </div>
+                <div class="tiny" style="display:flex;align-items:center;gap:8px">
+                  <span>${g.v}</span>
+                  <span style="color:var(--fg-4)">·</span>
+                  <span style="color:var(--v-400)">${g.sug}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="chart-card" style="grid-column:1 / -1">
+          <div class="chart-head">
+            <h4>Top agentes (humanos + IA)</h4>
+            <span class="pill ghost" style="margin-left:auto">junho</span>
+          </div>
+          <table class="tbl">
+            <thead><tr><th>Agente</th><th>Resolvidos</th><th>TMR</th><th>CSAT</th><th>Escaladas recebidas</th></tr></thead>
+            <tbody>
+              <tr><td><div style="display:flex;align-items:center;gap:10px"><span class="brand-dot" style="width:28px;height:28px;border-radius:8px">A</span><div><b style="color:#fff">ARIA</b><div class="tiny">IA · agente principal</div></div></div></td>
+                <td><b style="color:#fff">9.042</b></td><td>11s</td><td>4.7 ⭐</td><td>—</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:28px;height:28px"></div><div><b style="color:#fff">Marina Alves</b><div class="tiny">gestora · nível 3</div></div></div></td>
+                <td>1.284</td><td>3m 12s</td><td>4.9 ⭐</td><td>248</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="avatar c" style="width:28px;height:28px"></div><div><b style="color:#fff">Pedro Silva</b><div class="tiny">agente · nível 2</div></div></div></td>
+                <td>987</td><td>4m 48s</td><td>4.8 ⭐</td><td>185</td></tr>
+              <tr><td><div style="display:flex;align-items:center;gap:10px"><div class="avatar b" style="width:28px;height:28px">LA</div><div><b style="color:#fff">Laura Azevedo</b><div class="tiny">agente · nível 2</div></div></div></td>
+                <td>843</td><td>5m 10s</td><td>4.6 ⭐</td><td>162</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>`;
+}
+
+// ============= ROUTER =============
+const RENDERERS = {
+  login: {a: loginA, b: loginB},
+  chat: {a: chatA, b: chatB},
+  tickets: {a: ticketsA, b: ticketsB},
+  kb: {a: kbA, b: kbB},
+  settings: {a: settingsA, b: settingsB},
+  analytics: {a: analyticsA, b: analyticsB}
+};
+
+const state = {
+  screen: localStorage.getItem('aria.screen') || 'chat',
+  variant: localStorage.getItem('aria.variant') || 'a'
+};
+
+function renderTabs(){
+  document.getElementById('screenTabs').innerHTML = SCREENS.map(s=>
+    `<button class="screen-tab ${s.id===state.screen?'active':''}" data-screen="${s.id}">${s.label}</button>`
+  ).join('');
+  document.querySelectorAll('#variantPills .vpill').forEach(p=>{
+    p.classList.toggle('active', p.dataset.v === state.variant);
+  });
+}
+function renderStage(){
+  const r = RENDERERS[state.screen]?.[state.variant];
+  document.getElementById('stage').innerHTML = r ? `<section class="screen active" data-screen-label="${state.screen}-${state.variant}">${r()}</section>` : '<div style="padding:40px;color:#888">—</div>';
+  // wire rail goto
+  document.querySelectorAll('[data-goto]').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.screen = b.dataset.goto; persist(); renderTabs(); renderStage(); });
+  });
+}
+function persist(){
+  localStorage.setItem('aria.screen', state.screen);
+  localStorage.setItem('aria.variant', state.variant);
+}
+
+document.addEventListener('click', e=>{
+  const t = e.target.closest('.screen-tab'); if(t){ state.screen = t.dataset.screen; persist(); renderTabs(); renderStage(); return; }
+  const v = e.target.closest('.vpill'); if(v){ state.variant = v.dataset.v; persist(); renderTabs(); renderStage(); return; }
+  const tg = e.target.closest('.toggle[data-tweak]'); if(tg){ tg.classList.toggle('on'); applyTweaks(); return; }
+});
+
+function applyTweaks(){
+  const cotOn = document.querySelector('.toggle[data-tweak="cot"]')?.classList.contains('on');
+  const promoOn = document.querySelector('.toggle[data-tweak="promo"]')?.classList.contains('on');
+  document.querySelectorAll('.cot').forEach(e=>e.style.display = cotOn?'':'none');
+  document.querySelectorAll('.promo').forEach(e=>e.style.display = promoOn?'':'none');
+}
+
+// Tweaks edit mode bridge
+window.addEventListener('message', e=>{
+  if(!e.data) return;
+  if(e.data.type==='__activate_edit_mode') document.getElementById('tweaks').classList.add('on');
+  if(e.data.type==='__deactivate_edit_mode') document.getElementById('tweaks').classList.remove('on');
+});
+window.parent?.postMessage({type:'__edit_mode_available'}, '*');
+
+renderTabs();
+renderStage();
+</script>
+</body>
+</html>
